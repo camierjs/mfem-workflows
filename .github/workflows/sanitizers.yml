@@ -490,8 +490,8 @@ jobs:
           key: cache-build-par-mfem-${{matrix.sanitizer}}
       - name: Patch config.mk
         run: |
-          sed -i -e '/^MFEM_CPPFLAGS/ s/$/ ${MPI_INC}/' mfem-install/share/mfem/config.mk
-          sed -i -e '/^MFEM_LIBS/ s/$/ ${{env.LLVM_LDFLAGS}} ${MPI_LIB}/' mfem-install/share/mfem/config.mk
+          sed -i -e '/^MFEM_CPPFLAGS/ s/$/ $(MPI_INC)/' mfem-install/share/mfem/config.mk
+          sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         run: cat mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
