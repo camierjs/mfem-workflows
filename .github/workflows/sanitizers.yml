@@ -35,12 +35,14 @@ jobs:
           key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
 
   test:
-    needs: build-${{matrix.sanitizer}}-${{matrix.mpi}}
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        sanitizer: [asan, msan, ubsan]
         test: [examples, miniapps, tests]
         mpi: [par, seq]
+    name: test-${{matrix.sanitizer}}-${{matrix.mpi}}-${{matrix.test}}
     steps:
       - name: Restore
         uses: actions/cache@v4
