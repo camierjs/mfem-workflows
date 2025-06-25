@@ -529,8 +529,6 @@ jobs:
     steps:
       - name: Setup
         run: |
-          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
@@ -564,11 +562,12 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: MFEM Examples
+      - name: Build Examples
         working-directory: mfem/examples
-        run: |
-          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j 4
-          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
+      - name: Test Examples
+        working-directory: mfem/examples
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
 
   # Examples MFEM Parallel with Sanitizers
   test-par-examples:
@@ -583,8 +582,6 @@ jobs:
       - name: Setup
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
-          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
@@ -637,11 +634,12 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: MFEM Examples
+      - name: Build Examples
         working-directory: mfem/examples
-        run: |
-          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j 4
-          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
+      - name: Test Examples
+        working-directory: mfem/examples
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
 
 # ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
 # ./unit_tests --filenames-as-tags --input-file ./tests
