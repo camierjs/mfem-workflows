@@ -20,43 +20,34 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+        mpi: [par, seq]
+    name: build-${{matrix.sanitizer}}-${{matrix.mpi}}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup
-        run: touch tests_binary
-
-      - name: Build
-        run: |
-          mkdir -p output
-          cat << EOF > output/tests_binary
-          3.141592653589793
-          EOF
-
+      - name: Touch build-${{matrix.sanitizer}}-${{matrix.mpi}}
+        run:  touch build-${{matrix.sanitizer}}-${{matrix.mpi}}
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: output  # Path to build output
-          key: build-output-${{ github.sha }}
+          path: cache 
+          key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
 
-  downstream:
-    needs: build
+  test:
+    needs: build-${{matrix.sanitizer}}-${{matrix.mpi}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        task: [test, examples, miniapps]
+        test: [examples, miniapps, tests]
+        mpi: [par, seq]
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        run: echo Setup  # Same setup as build job
-
-      - name: Restore build artifacts
+      - name: Restore
         uses: actions/cache@v4
         with:
-          path: output  # Same path as build cache
-          key: build-output-${{ github.sha }}
+          path: cache
+          key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
 
-      - name: Run ${{ matrix.task }}
+      - name: Run ${{ matrix.test }}
         run: |
-          echo Running ${{ matrix.task }}
-          cat output/tests_binary
+          echo Running ${{ matrix.test }}
