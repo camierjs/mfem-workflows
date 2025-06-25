@@ -28,16 +28,16 @@ jobs:
 
       - name: Build
         run: |
-          mkdir -p build
-          cat << EOF > tests_binary
+          mkdir -p output
+          cat << EOF > output/tests_binary
           3.141592653589793
           EOF
 
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: build/  # Path to build output
-          key: build-${{ github.sha }}
+          path: output  # Path to build output
+          key: build-output-${{ github.sha }}
 
   downstream:
     needs: build
@@ -53,10 +53,10 @@ jobs:
       - name: Restore build artifacts
         uses: actions/cache@v4
         with:
-          path: build/  # Same path as build cache
-          key: build-${{ github.sha }}
+          path: output  # Same path as build cache
+          key: build-output-${{ github.sha }}
 
       - name: Run ${{ matrix.task }}
         run: |
           echo Running ${{ matrix.task }}
-          cat build/tests_binary
+          cat output/tests_binary
