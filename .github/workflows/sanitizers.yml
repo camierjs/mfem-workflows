@@ -115,7 +115,7 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: cache
+          path: lsan
           key: cache-lsan-suppression-file
 
   # LLVM libcxx
@@ -186,7 +186,7 @@ jobs:
 
   # Build MFEM Serial with Sanitizers
   build-seq-mfem:
-    needs: [build-file-lsan, build-llvm-libcxx]
+    needs: [build-llvm-libcxx]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -277,7 +277,7 @@ jobs:
 
   # Build MFEM Parallel with Sanitizers
   build-par-mfem:
-    needs: [build-file-lsan, build-llvm-libcxx, build-hypre, build-metis]
+    needs: [build-llvm-libcxx, build-hypre, build-metis]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -391,7 +391,7 @@ jobs:
 
   # Check MFEM Serial with Sanitizers
   test-seq-check:
-    needs: [build-seq-mfem]
+    needs: [build-file-lsan, build-seq-mfem]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -430,6 +430,13 @@ jobs:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: lsan
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -444,7 +451,7 @@ jobs:
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
 
   test-par-check:
-    needs: [build-par-mfem]
+    needs: [build-file-lsan, build-par-mfem]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -513,6 +520,13 @@ jobs:
         run: |
             ln -s -f ${{env.HYPRE_DIR}} hypre
             ln -s -f ${{env.METIS_DIR}} metis-4.0
+      - name: Restore LSAN file
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: lsan
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
       - name: Checkout
         uses: actions/checkout@v4
         with:
