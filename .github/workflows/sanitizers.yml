@@ -32,6 +32,7 @@ env:
   UBSAN_OPTIONS: "halt_on_error=1, print_stacktrace=1"
   # https://clang.llvm.org/docs/MemorySanitizer.html
   MSAN_OPTIONS: "poison_in_dtor=1"
+  LSAN_DIR: lsan
 
 jobs:
   # man-split:
@@ -99,12 +100,10 @@ jobs:
     runs-on: ubuntu-latest
     name: build-file-lsan
     steps:
-      - name: Env
-        run: echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
       - name: Setup
         run: |
-          mkdir -p ${{env.ASAN_DIR}}
-          cat << EOF > ${{env.ASAN_DIR}}/asan.supp
+          mkdir -p ${{env.LSAN_DIR}}
+          cat << EOF > ${{env.LSAN_DIR}}/lsan.supp
           leak:libevent_core-2.1.so
           leak:ompi_mpi_finalize
           leak:ompi_mpi_init
@@ -114,7 +113,7 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: lsan
+          path: ${{env.LSAN_DIR}}
           key: cache-lsan-suppression-file
 
   # LLVM libcxx
@@ -392,14 +391,12 @@ jobs:
         sanitizer: [asan, msan, ubsan]
     name: test-seq-check-${{matrix.sanitizer}}
     steps:
-      - name: Env
-        run: echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
       - name: Setup
         run: |
           echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/lsan.supp" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
@@ -425,7 +422,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: lsan
+          path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
@@ -447,8 +444,6 @@ jobs:
         sanitizer: [asan, ubsan]
     name: test-par-check-${{matrix.sanitizer}}
     steps:
-      - name: Env
-        run: echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
       - name: Setup
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
@@ -458,7 +453,7 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/asan.supp" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
@@ -507,7 +502,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: lsan
+          path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
