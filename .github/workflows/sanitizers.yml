@@ -103,8 +103,8 @@ jobs:
     steps:
       - name: Setup
         run: |
-          mkdir -p ${{env.LSAN_DIR}}
-          cat << EOF > ${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
+          mkdir -p ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
+          cat << EOF > ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
           leak:libevent_core-2.1.so
           leak:ompi_mpi_finalize
           leak:ompi_mpi_init
@@ -114,7 +114,7 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: ${{env.LSAN_DIR}}
+          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
           key: cache-lsan-suppression-file
 
   # LLVM libcxx
@@ -397,7 +397,7 @@ jobs:
           echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
@@ -423,7 +423,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: ${{env.LSAN_DIR}}
+          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
@@ -454,7 +454,7 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
@@ -501,7 +501,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: ${{env.LSAN_DIR}}
+          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
