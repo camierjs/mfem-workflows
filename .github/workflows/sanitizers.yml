@@ -9,7 +9,7 @@ on:
   push:
     branches: ["main"]
   # Run on all pull requests
-  pull_request: 
+  pull_request:
   # Allow manual triggering for debugging
   workflow_dispatch:
 
@@ -115,10 +115,10 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: cache 
-          key:  cache-lsan-suppression-file
+          path: cache
+          key: cache-lsan-suppression-file
 
-  # LLVM libcxx 
+  # LLVM libcxx
   # https://github.com/llvm/llvm-project/tree/main/libcxx
   build-llvm-libcxx:
     runs-on: ubuntu-latest
@@ -207,7 +207,7 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: mfem-install  
+          path: mfem-install
           key: cache-build-seq-mfem-${{matrix.sanitizer}}
       - name: Env
         run: |
@@ -226,6 +226,10 @@ jobs:
           echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
           echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
+      - name: Setup (LLVM)
+        run: |
+          echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
+          echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
@@ -233,11 +237,13 @@ jobs:
           echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
           echo "[LLVM_INC] ${{env.LLVM_INC}}"
           echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
+          echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
+          echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
           echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: mfem 
+          path: mfem
           repository: mfem/mfem  # 🔥
           ref: ubsan  # 🔥
       # - name: ls -la
@@ -250,8 +256,8 @@ jobs:
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
         env:
-          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
-          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}
         with:
           mpi: seq
           mfem-dir: mfem
@@ -304,7 +310,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key:  Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
@@ -319,6 +325,10 @@ jobs:
           echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
           echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
           echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
+      - name: Setup (LLVM)
+        run: |
+          echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
+          echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
@@ -326,6 +336,8 @@ jobs:
           echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
           echo "[LLVM_INC] ${{env.LLVM_INC}}"
           echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
+          echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
+          echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
           echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
           echo "[METIS_DIR] ${{env.METIS_DIR}}"
           echo "[MPI] Version: $(mpicxx --showme:version)"
@@ -374,7 +386,7 @@ jobs:
       - name: Install
         working-directory: mfem/build
         run: ninja install
-  
+
   test-seq-check:
     needs: [build-seq-mfem]
     runs-on: ubuntu-latest
@@ -388,7 +400,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+          key: cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
       - name: MFEM Check
         working-directory: mfem/build
         run: ninja -v check
@@ -406,7 +418,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+          key: cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
       - name: MFEM Check
         working-directory: mfem/build
         run: ninja -v check
