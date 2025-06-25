@@ -438,7 +438,7 @@ jobs:
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository 
       - name: MFEM Check
         working-directory: mfem/examples
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-seq
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
 
   test-par-check:
     needs: [build-par-mfem]
