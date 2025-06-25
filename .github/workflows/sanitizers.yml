@@ -42,9 +42,16 @@ jobs:
         run: |
           echo Running build Hypre
 
+  build-metis:
+    runs-on: ubuntu-latest
+    name: build-metis
+    steps:
+      - name: Run build Metis
+        run: |
+          echo Running build Metis
 
   test:
-    needs: [build-mfem, build-hypre]
+    needs: [build-mfem, build-hypre, build-metis]
     runs-on: ubuntu-latest
     strategy:
       matrix:
