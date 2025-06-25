@@ -460,8 +460,8 @@ jobs:
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
-          echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
+          echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
+          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
