@@ -103,8 +103,8 @@ jobs:
     steps:
       - name: Setup
         run: |
-          mkdir -p ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
-          cat << EOF > ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
+          mkdir -p ${{env.LSAN_DIR}}
+          cat << EOF > ${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
           leak:libevent_core-2.1.so
           leak:ompi_mpi_finalize
           leak:ompi_mpi_init
@@ -114,7 +114,7 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
+          path: ${{env.LSAN_DIR}}
           key: cache-lsan-suppression-file
 
   # LLVM libcxx
@@ -423,7 +423,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
+          path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
@@ -501,7 +501,7 @@ jobs:
       - name: Restore LSAN file
         uses: actions/cache@v4
         with:
-          path: ${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}
+          path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
