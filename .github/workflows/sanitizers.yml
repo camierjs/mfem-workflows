@@ -517,41 +517,131 @@ jobs:
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
 
-  # test-seq:
-  #   needs: [build-seq-mfem]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       sanitizer: [asan, msan, ubsan]
-  #       test: [examples, miniapps, tests]
-  #   name: test-seq-${{matrix.sanitizer}}-${{matrix.test}}
-  #   steps:
-  #     - name: Restore
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: cache
-  #         key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
-  #     - name: Run ${{ matrix.test }}
-  #       run: |
-  #         echo Running ${{ matrix.test }}
+  # Examples MFEM Serial with Sanitizers
+  test-seq-examples:
+    needs: [test-seq-check]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: test-seq-examples-${{matrix.sanitizer}}
+    steps:
+      - name: Setup
+        run: |
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Setup (LLVM_LIB)
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore MFEM
+        id: mfem-cache
+        uses: actions/cache@v4
+        with:
+          path: mfem-install
+          fail-on-cache-miss: true
+          key: cache-build-seq-mfem-${{matrix.sanitizer}}
+      - name: Patch config.mk
+        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+      - name: Restore LLVM libcxx
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: MFEM Check
+        working-directory: mfem/examples
+        run: |
+          MFEM_INSTALL_DIR=../build/install make all -j 4
+          MFEM_INSTALL_DIR=../build/install make test
 
-  # test-par:
-  #   needs: [build-par-mfem, build-par-hypre, build-par-metis]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       sanitizer: [asan, msan, ubsan]
-  #       test: [examples, miniapps, tests]
-  #   name: test-par-${{matrix.sanitizer}}-${{matrix.test}}
-  #   steps:
-  #     - name: Restore
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: cache
-  #         key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
-  #     - name: Run ${{ matrix.test }}
-  #       run: |
-  #         echo Running ${{ matrix.test }}
+  # Examples MFEM Parallel with Sanitizers
+  test-par-examples:
+    needs: [test-par-check]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+    name: test-par-examples-${{matrix.sanitizer}}
+    steps:
+      - name: Setup
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
+          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Setup (LLVM_LIB)
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore MFEM
+        id: mfem-cache
+        uses: actions/cache@v4
+        with:
+          path: mfem-install
+          fail-on-cache-miss: true
+          key: cache-build-par-mfem-${{matrix.sanitizer}}
+      - name: Patch config.mk
+        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+      - name: Cat config.mk
+        run: cat mfem-install/share/mfem/config.mk
+      - name: Restore LLVM libcxx
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore Hypre
+        uses: actions/cache@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        uses: actions/cache@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Restore LSAN
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Hypre/Metis links
+        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: MFEM Check
+        working-directory: mfem/examples
+        run: |
+          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j 4
+          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test
 
 # ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
 # ./unit_tests --filenames-as-tags --input-file ./tests
