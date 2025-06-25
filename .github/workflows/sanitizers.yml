@@ -95,7 +95,7 @@ jobs:
           dir: ${{env.METIS_DIR}}
 
   # Leak sanitizer suppression file
-  lsan-file:
+  build-file-lsan:
     runs-on: ubuntu-latest
     name: lsan-file
     steps:
@@ -123,6 +123,7 @@ jobs:
   build-llvm-libcxx:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
         include:
@@ -185,9 +186,10 @@ jobs:
 
   # Build MFEM Serial with Sanitizers
   build-seq-mfem:
-    needs: [lsan-file, build-llvm-libcxx]
+    needs: [build-file-lsan, build-llvm-libcxx]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
         include:
@@ -205,8 +207,8 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: cache 
-          key:  cache-build-seq-mfem-${{matrix.sanitizer}}
+          path: mfem-install  
+          key: cache-build-seq-mfem-${{matrix.sanitizer}}
       - name: Env
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
@@ -265,14 +267,19 @@ jobs:
             -DMFEM_USE_MEMALLOC=OFF
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
-            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+      - name: Install
+        working-directory: mfem/build
+        run: ninja install
 
   # Build MFEM Parallel with Sanitizers
   build-par-mfem:
-    needs: [lsan-file, build-llvm-libcxx, build-hypre, build-metis]
+    needs: [build-file-lsan, build-llvm-libcxx, build-hypre, build-metis]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         sanitizer: [asan, ubsan]
         include:
@@ -287,8 +294,8 @@ jobs:
       - name: Cache
         uses: actions/cache@v4
         with:
-          path: cache 
-          key:  cache-build-par-mfem-${{matrix.sanitizer}}
+          path: mfem-install
+          key: cache-build-par-mfem-${{matrix.sanitizer}}
       - name: Env
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
@@ -362,12 +369,17 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
-            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+            -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+      - name: Install
+        working-directory: mfem/build
+        run: ninja install
   
   test-seq-check:
     needs: [build-seq-mfem]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
     name: test-seq-check-${{matrix.sanitizer}}
@@ -385,6 +397,7 @@ jobs:
     needs: [build-par-mfem]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         sanitizer: [asan, ubsan]
     name: test-par-check-${{matrix.sanitizer}}
