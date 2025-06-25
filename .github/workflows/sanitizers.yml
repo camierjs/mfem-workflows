@@ -35,6 +35,7 @@ jobs:
           key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
 
   build-hypre:
+    runs-on: ubuntu-latest
     name: build-hypre
     steps:
       - name: Run build Hypre
