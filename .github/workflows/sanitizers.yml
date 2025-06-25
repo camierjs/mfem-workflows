@@ -211,11 +211,11 @@ jobs:
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
-      - name: Restore
+      - name: Restore LLVM libcxx
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key:  Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         run: |
           echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
@@ -236,15 +236,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: mfem 
-          repository: mfem/mfem
-          ref: ubsan
-      - name: ls -la
-        run: |
-          pwd
-          ls -la
-          ls -la llvm
-          ls -la mfem
-          ls -la ${GITHUB_WORKSPACE}
+          repository: mfem/mfem  # 🔥
+          ref: ubsan  # 🔥
+      # - name: ls -la
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     ls -la llvm
+      #     ls -la mfem
+      #     ls -la ${GITHUB_WORKSPACE}
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
         env:
@@ -255,7 +255,6 @@ jobs:
           mfem-dir: mfem
           hypre-dir: unused
           metis-dir: unused
-          # mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
@@ -294,7 +293,7 @@ jobs:
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
-      - name: Restore
+      - name: Restore LLVM libcxx
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
@@ -326,12 +325,22 @@ jobs:
           echo "[MPI] Compile: $(mpicxx --showme:compile)"
           echo "[MPI] Link: $(mpicxx --showme:link)"
           echo "[CTEST] ${{env.CTEST}}"
+      - name: Restore Hypre
+        uses: actions/cache@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        uses: actions/cache@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: mfem
-          repository: mfem/mfem
-          ref: ubsan
+          repository: mfem/mfem  # 🔥
+          ref: ubsan  # 🔥
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
         env:
@@ -341,7 +350,6 @@ jobs:
           mpi: par
           mfem-dir: mfem
           os: ${{runner.os}}
-          # mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
           library-only: true
           build-system: cmake
           hypre-dir: ${{env.HYPRE_DIR}}
