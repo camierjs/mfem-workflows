@@ -1,0 +1,58 @@
+name: "Sanitizers"
+
+permissions:
+  actions: write
+
+on:
+  # Run on pushes to main development branches
+  push:
+    branches: ["master", "next"]
+  # Run on all pull requests
+  pull_request:  [ main ]
+  # Allow manual triggering for debugging
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        run: touch tests_binary
+
+      - name: Build        
+        run: |
+          cat << EOF > tests_binary
+          3.141592653589793
+          EOF
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: build/  # Path to build output
+          key: build-${{ github.sha }}
+  
+  downstream:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [test, examples, miniapps]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up environment
+        run: echo Setup  # Same setup as build job
+
+      - name: Restore build artifacts
+        uses: actions/cache@v4
+        with:
+          path: build/  # Same path as build cache
+          key: build-${{ github.sha }}
+
+      - name: Run ${{ matrix.task }}
+        run: echo Running ${{ matrix.task }}
