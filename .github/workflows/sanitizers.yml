@@ -18,35 +18,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-mfem-seq:
+  build-seq-mfem:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
-    name: build-${{matrix.sanitizer}}-seq
+    name: build-seq-${{matrix.sanitizer}}
     steps:
-      - name: Touch build-${{matrix.sanitizer}}-seq
-        run:  touch build-${{matrix.sanitizer}}-seq
+      - name: Touch build-seq-${{matrix.sanitizer}}
+        run:  touch build-seq-${{matrix.sanitizer}}
       - name: Cache
         uses: actions/cache@v4
         with:
           path: cache 
-          key:  cache-build-${{matrix.sanitizer}}-seq-${{github.sha}}
+          key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
 
-  build-mfem-par:
+  build-par-mfem:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
     name: build-${{matrix.sanitizer}}-par
     steps:
-      - name: Touch build-${{matrix.sanitizer}}-par
-        run:  touch build-${{matrix.sanitizer}}-par
+      - name: Touch build-par-${{matrix.sanitizer}}
+        run:  touch build-par-${{matrix.sanitizer}}
       - name: Cache
         uses: actions/cache@v4
         with:
           path: cache 
-          key:  cache-build-${{matrix.sanitizer}}-par-${{github.sha}}
+          key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
 
   build-hypre:
     runs-on: ubuntu-latest
@@ -65,38 +65,38 @@ jobs:
           echo Running build Metis
 
   test-seq:
-    needs: [build-mfem-seq]
+    needs: [build-seq-mfem]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
         test: [examples, miniapps, tests]
-    name: test-${{matrix.sanitizer}}-seq-${{matrix.test}}
+    name: test-seq-${{matrix.sanitizer}}-${{matrix.test}}
     steps:
       - name: Restore
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-${{matrix.sanitizer}}-seq-${{github.sha}}
+          key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
 
       - name: Run ${{ matrix.test }}
         run: |
           echo Running ${{ matrix.test }}
 
   test-par:
-    needs: [build-mfem, build-hypre, build-metis]
+    needs: [build-par-mfem, build-par-hypre, build-par-metis]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
         test: [examples, miniapps, tests]
-    name: test-${{matrix.sanitizer}}-par-${{matrix.test}}
+    name: test-par-${{matrix.sanitizer}}-${{matrix.test}}
     steps:
       - name: Restore
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-${{matrix.sanitizer}}-par-${{github.sha}}
+          key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
 
       - name: Run ${{ matrix.test }}
         run: |
