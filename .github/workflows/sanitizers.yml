@@ -243,14 +243,12 @@ jobs:
           LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         with:
           mpi: seq
-          target: opt
           mfem-dir: mfem
-          precision: fp64
+          hypre-dir: unused
+          metis-dir: unused
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
-          hypre-dir: ${{env.HYPRE_DIR}}
-          metis-dir: ${{env.METIS_DIR}}
           config-options: >-
             -GNinja
             -DMPICXX=${{env.CXX}}
@@ -263,7 +261,7 @@ jobs:
 
   # Build MFEM Parallel with Sanitizers
   build-par-mfem:
-    needs: [lsan-file, build-llvm-libcxx]
+    needs: [lsan-file, build-llvm-libcxx, build-hypre, build-metis]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -328,10 +326,7 @@ jobs:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
           LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         with:
-          mpi: par
-          target: opt
           mfem-dir: mfem
-          precision: fp64
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
