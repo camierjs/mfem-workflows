@@ -235,7 +235,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: mfem
+          path: mfem  # mfem-workflows  # mfem 🔥🔥
+      - name: ls -la
+        run: |
+          pwd
+          ls -la
+          ls -la ${GITHUB_WORKSPACE}
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
         env:
@@ -326,6 +331,7 @@ jobs:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
           LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         with:
+          mpi: par
           mfem-dir: mfem
           os: ${{runner.os}}
           library-only: true
