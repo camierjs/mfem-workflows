@@ -424,6 +424,8 @@ jobs:
       - name: Patch config.mk
         run: |
           sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+      - name: Cat config.mk
+        run: cat mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         uses: actions/cache@v4
         with:
