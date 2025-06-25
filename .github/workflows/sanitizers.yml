@@ -402,6 +402,7 @@ jobs:
         working-directory: mfem/build
         run: ninja install
 
+  # Check MFEM Serial with Sanitizers
   test-seq-check:
     needs: [build-seq-mfem]
     runs-on: ubuntu-latest
@@ -412,13 +413,21 @@ jobs:
     name: test-seq-check-${{matrix.sanitizer}}
     steps:
       - name: Restore
+        id: mfem-cache
         uses: actions/cache@v4
         with:
-          path: cache
+          path: mfem-install
           key: cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+      - name: Checkout
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          repository: mfem/mfem  # 🔥
+          ref: ubsan  # 🔥
       - name: MFEM Check
-        working-directory: mfem/build
-        run: ninja -v check
+        working-directory: mfem/examples
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
 
   test-par-check:
     needs: [build-par-mfem]
@@ -430,13 +439,21 @@ jobs:
     name: test-par-check-${{matrix.sanitizer}}
     steps:
       - name: Restore
+        id: mfem-cache
         uses: actions/cache@v4
         with:
-          path: cache
+          path: mfem-install
           key: cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+      - name: Checkout
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          repository: mfem/mfem  # 🔥
+          ref: ubsan  # 🔥
       - name: MFEM Check
-        working-directory: mfem/build
-        run: ninja -v check
+        working-directory: mfem/examples
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
 
   # test-seq:
   #   needs: [build-seq-mfem]
