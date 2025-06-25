@@ -242,13 +242,13 @@ jobs:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
           LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         with:
+          mpi: seq
           target: opt
           mfem-dir: mfem
           precision: fp64
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
-          mpi: ${{matrix.mpi}}
           hypre-dir: ${{env.HYPRE_DIR}}
           metis-dir: ${{env.METIS_DIR}}
           config-options: >-
@@ -328,13 +328,13 @@ jobs:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
           LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         with:
+          mpi: par
           target: opt
           mfem-dir: mfem
           precision: fp64
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
-          mpi: ${{matrix.mpi}}
           hypre-dir: ${{env.HYPRE_DIR}}
           metis-dir: ${{env.METIS_DIR}}
           config-options: >-
