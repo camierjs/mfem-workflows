@@ -18,6 +18,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  man-split:
+    runs-on: ubuntu-latest
+    name: Manual split
+    steps:
+      - name: Touch
+        run: man split
+
   build-seq-mfem:
     runs-on: ubuntu-latest
     strategy:
@@ -101,3 +108,7 @@ jobs:
       - name: Run ${{ matrix.test }}
         run: |
           echo Running ${{ matrix.test }}
+
+
+# ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
+# ./unit_tests --filenames-as-tags --input-file ./tests
