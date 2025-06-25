@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-mfem:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,8 +34,16 @@ jobs:
           path: cache 
           key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
 
+  build-hypre:
+    name: build-hypre
+    steps:
+      - name: Run build Hypre
+        run: |
+          echo Running build Hypre
+
+
   test:
-    needs: build
+    needs: build-mfem build-hypre
     runs-on: ubuntu-latest
     strategy:
       matrix:
