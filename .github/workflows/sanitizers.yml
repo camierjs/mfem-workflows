@@ -48,17 +48,17 @@ jobs:
           path: cache 
           key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
 
-  build-hypre:
+  build-par-hypre:
     runs-on: ubuntu-latest
-    name: build-hypre
+    name: build-par-hypre
     steps:
       - name: Run build Hypre
         run: |
           echo Running build Hypre
 
-  build-metis:
+  build-par-metis:
     runs-on: ubuntu-latest
-    name: build-metis
+    name: build-par-metis
     steps:
       - name: Run build Metis
         run: |
