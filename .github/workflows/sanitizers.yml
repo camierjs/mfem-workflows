@@ -453,7 +453,7 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/asan.supp" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${{env.LSAN_DIR}}/lsan.supp" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
