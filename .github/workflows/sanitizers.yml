@@ -42,7 +42,7 @@ jobs:
   #       run: man split
 
   # Build HYPRE
-  build-par-hypre:
+  build-hypre:
     runs-on: ubuntu-latest
     name: build-hypre
     steps:
@@ -70,7 +70,7 @@ jobs:
           build-system: make
 
   # Build METIS
-  build-par-metis:
+  build-metis:
     runs-on: ubuntu-latest
     name: build-metis
     steps:
