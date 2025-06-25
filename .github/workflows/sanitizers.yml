@@ -454,6 +454,7 @@ jobs:
     steps:
       - name: Setup
         run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
           echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
