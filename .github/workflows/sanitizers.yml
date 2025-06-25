@@ -240,6 +240,8 @@ jobs:
         run: |
           pwd
           ls -la
+          ls -la llvm
+          ls -la mfem
           ls -la ${GITHUB_WORKSPACE}
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
