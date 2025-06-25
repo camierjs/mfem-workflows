@@ -5,13 +5,12 @@ permissions:
   actions: write
 
 on:
-  # Run on pushes to main development branches
   push:
-    branches: ["main"]
-  # Run on all pull requests
-  pull_request: ["main"]
-  # Allow manual triggering for debugging
-  workflow_dispatch:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
