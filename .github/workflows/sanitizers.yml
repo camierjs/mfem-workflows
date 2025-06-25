@@ -41,28 +41,14 @@ jobs:
   #     - name: Touch
   #       run: man split
 
-  # MPI Setup
-  # echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
-  # echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
-  # echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-  # echo "[MPI] Version: $(mpicxx --showme:version)"
-  # echo "[MPI] Compile: $(mpicxx --showme:compile)"
-  # echo "[MPI] Link: $(mpicxx --showme:link)"
-  mpi-setup:
-    runs-on: ubuntu-latest
-    name: mpi-setup
-    steps:
-      - name: Setup
-        run: sudo apt-get install openmpi-bin libopenmpi-dev
-
   # Build HYPRE
   build-par-hypre:
-    needs: mpi-setup
     runs-on: ubuntu-latest
     name: build-hypre
     steps:
-      - name: EnSetupv
+      - name: Setup
         run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
           echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
           echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
       - name: Cache
@@ -262,7 +248,7 @@ jobs:
 
   # Build MFEM Parallel with Sanitizers
   build-par-mfem:
-    needs: [mpi-setup, lsan-file, build-llvm-libcxx]
+    needs: [lsan-file, build-llvm-libcxx]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -288,14 +274,18 @@ jobs:
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Setup
         run: |
-          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "LLVM_INC=${LLVM_DIR}/include/c++/v1" >> $GITHUB_ENV
-          echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
-          echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
-          echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
+          echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
           echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
+          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
+          echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
+          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
       - name: Echo
         run: |
           echo "[CC] ${{env.CC}}"
@@ -305,6 +295,9 @@ jobs:
           echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
           echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
           echo "[METIS_DIR] ${{env.METIS_DIR}}"
+          echo "[MPI] Version: $(mpicxx --showme:version)"
+          echo "[MPI] Compile: $(mpicxx --showme:compile)"
+          echo "[MPI] Link: $(mpicxx --showme:link)"
           echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
         uses: actions/checkout@v4
