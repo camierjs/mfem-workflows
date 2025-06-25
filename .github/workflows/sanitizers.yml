@@ -4,20 +4,14 @@ name: "Sanitizers"
 permissions:
   actions: write
 
-# on:
-#   # Run on pushes to main development branches
-#   push:
-#     branches: ["main"]
-#   # Run on all pull requests
-#   pull_request: ["main"]
-#   # Allow manual triggering for debugging
-#   workflow_dispatch:
-
 on:
+  # Run on pushes to main development branches
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  # Run on all pull requests
+  pull_request: 
+  # Allow manual triggering for debugging
+  workflow_dispatch:
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
