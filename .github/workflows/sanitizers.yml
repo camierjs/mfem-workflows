@@ -97,7 +97,7 @@ jobs:
   # Leak sanitizer suppression file
   build-file-lsan:
     runs-on: ubuntu-latest
-    name: lsan-file
+    name: build-file-lsan
     steps:
       - name: Env
         run: |
@@ -205,6 +205,7 @@ jobs:
     name: build-seq-mfem-${{matrix.sanitizer}}
     steps:
       - name: Cache
+        id: mfem-cache
         uses: actions/cache@v4
         with:
           path: mfem-install
@@ -214,6 +215,7 @@ jobs:
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
@@ -241,6 +243,7 @@ jobs:
           echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
           echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
@@ -254,6 +257,7 @@ jobs:
       #     ls -la mfem
       #     ls -la ${GITHUB_WORKSPACE}
       - name: Build
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
@@ -277,6 +281,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
       - name: Install
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja install
 
@@ -298,6 +303,7 @@ jobs:
     name: build-par-mfem-${{matrix.sanitizer}}
     steps:
       - name: Cache
+        id: mfem-cache
         uses: actions/cache@v4
         with:
           path: mfem-install
@@ -307,11 +313,13 @@ jobs:
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
           key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
@@ -326,10 +334,12 @@ jobs:
           echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
           echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
       - name: Setup (LLVM)
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         run: |
           echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
           echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         run: |
           echo "[CC] ${{env.CC}}"
           echo "[CXX] ${{env.CXX}}"
@@ -345,22 +355,26 @@ jobs:
           echo "[MPI] Link: $(mpicxx --showme:link)"
           echo "[CTEST] ${{env.CTEST}}"
       - name: Restore Hypre
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.HYPRE_DIR}}
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.METIS_DIR}}
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Checkout
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           repository: mfem/mfem  # 🔥
           ref: ubsan  # 🔥
       - name: Build
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
@@ -384,6 +398,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
       - name: Install
+        if: steps.mfem-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja install
 
