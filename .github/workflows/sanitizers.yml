@@ -102,7 +102,14 @@ jobs:
     runs-on: ubuntu-latest
     name: build-file-lsan
     steps:
+      - name: Cache
+        id: lsan-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          key: cache-lsan-suppression-file
       - name: Setup
+        if: steps.lsan-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${{env.LSAN_DIR}}
           cat << EOF > ${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
@@ -112,11 +119,6 @@ jobs:
           leak:PMPI_Init
           leak:strdup
           EOF
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{env.LSAN_DIR}}
-          key: cache-lsan-suppression-file
 
   # LLVM libcxx
   # https://github.com/llvm/llvm-project/tree/main/libcxx
