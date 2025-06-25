@@ -363,7 +363,7 @@ jobs:
         with:
           path: mfem
           ref: ubsan
-          repository: mfem/mfem # 🔥🔥🔥 Using MFEM/ubsan repository 
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Build
         if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
@@ -435,7 +435,7 @@ jobs:
         with:
           path: mfem
           ref: ubsan
-          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository 
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: MFEM Check
         working-directory: mfem/examples
         env:
@@ -479,7 +479,9 @@ jobs:
       - name: Patch config.mk
         run: |
           sed -i -e '/^MFEM_CPPFLAGS/ s/$/ $(MPI_INC)/' mfem-install/share/mfem/config.mk
-          sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk          
+          sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+      - name: Cat config.mk
+        run: cat mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         uses: actions/cache@v4
         with:
@@ -507,12 +509,12 @@ jobs:
         with:
           path: mfem
           ref: ubsan
-          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository 
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: MFEM Check
-        working-directory: mfem/examples
-        env:
-          CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
-          LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        # working-directory: mfem/examples
+        # env:
+        #   CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+        #   LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
 
   # test-seq:
