@@ -18,21 +18,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-mfem:
+  build-mfem-seq:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
-        mpi: [par, seq]
-    name: build-${{matrix.sanitizer}}-${{matrix.mpi}}
+    name: build-${{matrix.sanitizer}}-seq
     steps:
-      - name: Touch build-${{matrix.sanitizer}}-${{matrix.mpi}}
-        run:  touch build-${{matrix.sanitizer}}-${{matrix.mpi}}
+      - name: Touch build-${{matrix.sanitizer}}-seq
+        run:  touch build-${{matrix.sanitizer}}-seq
       - name: Cache
         uses: actions/cache@v4
         with:
           path: cache 
-          key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
+          key:  cache-build-${{matrix.sanitizer}}-seq-${{github.sha}}
+
+  build-mfem-par:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: build-${{matrix.sanitizer}}-par
+    steps:
+      - name: Touch build-${{matrix.sanitizer}}-par
+        run:  touch build-${{matrix.sanitizer}}-par
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: cache 
+          key:  cache-build-${{matrix.sanitizer}}-par-${{github.sha}}
 
   build-hypre:
     runs-on: ubuntu-latest
@@ -50,21 +64,39 @@ jobs:
         run: |
           echo Running build Metis
 
-  test:
+  test-seq:
+    needs: [build-mfem-seq]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+        test: [examples, miniapps, tests]
+    name: test-${{matrix.sanitizer}}-seq-${{matrix.test}}
+    steps:
+      - name: Restore
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key:  cache-build-${{matrix.sanitizer}}-seq-${{github.sha}}
+
+      - name: Run ${{ matrix.test }}
+        run: |
+          echo Running ${{ matrix.test }}
+
+  test-par:
     needs: [build-mfem, build-hypre, build-metis]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
         test: [examples, miniapps, tests]
-        mpi: [par, seq]
-    name: test-${{matrix.sanitizer}}-${{matrix.mpi}}-${{matrix.test}}
+    name: test-${{matrix.sanitizer}}-par-${{matrix.test}}
     steps:
       - name: Restore
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-${{matrix.sanitizer}}-${{matrix.mpi}}-${{github.sha}}
+          key:  cache-build-${{matrix.sanitizer}}-par-${{github.sha}}
 
       - name: Run ${{ matrix.test }}
         run: |
