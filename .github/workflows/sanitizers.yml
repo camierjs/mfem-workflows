@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     name: build-hypre
     steps:
-      - name: Setup
+      - name: Env
         run: |
           echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
           echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
@@ -56,7 +56,7 @@ jobs:
         with:
           path: ${{env.HYPRE_DIR}}
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: MPI Setup
+      - name: Setup
         if: steps.hypre-cache.outputs.cache-hit != 'true'
         run: sudo apt-get install openmpi-bin libopenmpi-dev
       - name: Build
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     name: build-metis
     steps:
-      - name: Setup
+      - name: Env
         run: |
           echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
           echo "METIS_TGZ=metis-${{env.METIS_VER}}.tar.gz" >> $GITHUB_ENV
@@ -84,7 +84,7 @@ jobs:
         with:
           path: ${{env.METIS_DIR}}
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: MPI Setup
+      - name: Setup
         if: steps.metis-cache.outputs.cache-hit != 'true'
         run: sudo apt-get install openmpi-bin libopenmpi-dev
       - name: Build
@@ -99,10 +99,10 @@ jobs:
     runs-on: ubuntu-latest
     name: lsan-file
     steps:
-      - name: Setup
+      - name: Env
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
-      - name: File
+      - name: Setup
         run: |
           mkdir -p ${{env.ASAN_DIR}}
           cat << EOF > ${{env.ASAN_DIR}}/asan.supp
@@ -124,15 +124,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        sanitizer: [msan, ubsan]
+        sanitizer: [asan, msan, ubsan]
         include:
+          - sanitizer: asan
+            llvm_use_sanitizer: "Address"
           - sanitizer: msan
             llvm_use_sanitizer: "MemoryWithOrigins"
           - sanitizer: ubsan
             llvm_use_sanitizer: "Undefined"
     name: build-libcxx-${{matrix.sanitizer}}
     steps:
-      - name: Setup
+      - name: Env
         run: |
           echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
           echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
@@ -142,7 +144,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.llvm_sanitizer}}
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Clone
         if: steps.llvm-cache.outputs.cache-hit != 'true'
         run: >
@@ -195,11 +197,9 @@ jobs:
           - sanitizer: msan
             cxxflags: "-fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor"
             ldflags: "-fsanitize=memory"
-            llvm_sanitizer: "MemoryWithOrigins"
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-            llvm_sanitizer: "Undefined"
     name: build-seq-mfem-${{matrix.sanitizer}}
     steps:
       - name: Cache
@@ -207,10 +207,15 @@ jobs:
         with:
           path: cache 
           key:  cache-build-seq-mfem-${{matrix.sanitizer}}
-      - name: Workspace
+      - name: Env
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Restore
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          key:  Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         run: |
           echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
@@ -270,7 +275,6 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-            llvm_sanitizer: "Undefined"
     name: build-par-mfem-${{matrix.sanitizer}}
     steps:
       - name: Cache
@@ -278,10 +282,15 @@ jobs:
         with:
           path: cache 
           key:  cache-build-par-mfem-${{matrix.sanitizer}}
-      - name: Workspace
+      - name: Env
         run: |
           echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
           echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Restore
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          key:  Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
