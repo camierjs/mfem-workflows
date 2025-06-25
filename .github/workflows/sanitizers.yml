@@ -527,7 +527,7 @@ jobs:
         # env:
         #   CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
         #   LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-par
 
   # test-seq:
   #   needs: [build-seq-mfem]
