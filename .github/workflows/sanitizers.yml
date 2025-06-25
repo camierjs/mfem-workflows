@@ -253,6 +253,7 @@ jobs:
           mfem-dir: mfem
           hypre-dir: unused
           metis-dir: unused
+          mfem-branch: ubsan  # 🔥🔥🔥 not required
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
@@ -336,6 +337,7 @@ jobs:
           mpi: par
           mfem-dir: mfem
           os: ${{runner.os}}
+          mfem-branch: ubsan  # 🔥🔥🔥 not required
           library-only: true
           build-system: cmake
           hypre-dir: ${{env.HYPRE_DIR}}
