@@ -412,6 +412,11 @@ jobs:
         sanitizer: [asan, msan, ubsan]
     name: test-seq-check-${{matrix.sanitizer}}
     steps:
+      - name: Setup
+        run: |
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
       - name: Restore
         id: mfem-cache
         uses: actions/cache@v4
@@ -419,6 +424,12 @@ jobs:
           path: mfem-install
           fail-on-cache-miss: true
           key: cache-build-seq-mfem-${{matrix.sanitizer}}
+      - name: Restore LLVM libcxx
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -438,6 +449,13 @@ jobs:
         sanitizer: [asan, ubsan]
     name: test-par-check-${{matrix.sanitizer}}
     steps:
+      - name: Setup
+        run: |
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
       - name: Restore
         id: mfem-cache
         uses: actions/cache@v4
@@ -445,6 +463,24 @@ jobs:
           path: mfem-install
           fail-on-cache-miss: true
           key: cache-build-par-mfem-${{matrix.sanitizer}}
+      - name: Restore LLVM libcxx
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore Hypre
+        uses: actions/cache@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        uses: actions/cache@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Checkout
         uses: actions/checkout@v4
         with:
