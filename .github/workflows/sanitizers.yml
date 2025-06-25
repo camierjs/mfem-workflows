@@ -74,6 +74,7 @@ jobs:
     steps:
       - name: Setup
         run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
           echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
           echo "METIS_TGZ=metis-${{env.METIS_VER}}.tar.gz" >> $GITHUB_ENV
       - name: Cache
