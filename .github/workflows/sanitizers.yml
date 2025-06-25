@@ -48,7 +48,6 @@ jobs:
     steps:
       - name: Setup
         run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
           echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
           echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
       - name: Cache
@@ -57,6 +56,9 @@ jobs:
         with:
           path: ${{env.HYPRE_DIR}}
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: MPI Setup
+        if: steps.hypre-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get install openmpi-bin libopenmpi-dev
       - name: Build
         if: steps.hypre-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-hypre@v2.5
@@ -74,7 +76,6 @@ jobs:
     steps:
       - name: Setup
         run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
           echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
           echo "METIS_TGZ=metis-${{env.METIS_VER}}.tar.gz" >> $GITHUB_ENV
       - name: Cache
@@ -83,6 +84,9 @@ jobs:
         with:
           path: ${{env.METIS_DIR}}
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: MPI Setup
+        if: steps.metis-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get install openmpi-bin libopenmpi-dev
       - name: Build
         if: steps.metis-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-metis@v2.5
@@ -129,7 +133,10 @@ jobs:
     name: build-libcxx-${{matrix.sanitizer}}
     steps:
       - name: Setup
-        run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+        run: |
+          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Cache
         id: llvm-cache
         uses: actions/cache@v4
