@@ -417,9 +417,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
+          fail-on-cache-miss: true
           key: cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
       - name: Checkout
-        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
@@ -443,9 +443,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
+          fail-on-cache-miss: true
           key: cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
       - name: Checkout
-        if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
