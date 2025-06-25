@@ -405,7 +405,7 @@ jobs:
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      - name: Restore
+      - name: Restore MFEM
         id: mfem-cache
         uses: actions/cache@v4
         with:
@@ -470,7 +470,7 @@ jobs:
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      - name: Restore
+      - name: Restore MFEM
         id: mfem-cache
         uses: actions/cache@v4
         with:
@@ -499,14 +499,14 @@ jobs:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore Hypre/Metis links
-        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      - name: Restore LSAN file
+      - name: Restore LSAN
         uses: actions/cache@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
+      - name: Hypre/Metis links
+        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
         uses: actions/checkout@v4
         with:
