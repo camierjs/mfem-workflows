@@ -44,7 +44,7 @@ jobs:
 
 
   test:
-    needs: build-mfem build-hypre
+    needs: [build-mfem, build-hypre]
     runs-on: ubuntu-latest
     strategy:
       matrix:
