@@ -119,6 +119,11 @@ jobs:
           leak:PMPI_Init
           leak:strdup
           EOF
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsan-suppression-file
+          path: ${{env.LSAN_DIR}}    
 
   # LLVM libcxx
   # https://github.com/llvm/llvm-project/tree/main/libcxx
@@ -765,5 +770,18 @@ jobs:
         working-directory: mfem/tests/unit
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
 
+# Miniapps MFEM Serial with Sanitizers
+# Miniapps tests MFEM Parallel with Sanitizers
+
+# Split unit tests into separate files with:
 # ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
 # ./unit_tests --filenames-as-tags --input-file ./tests
+
+# upload-artifact
+# https://github.com/marketplace/actions/upload-a-build-artifact
+      # - name: Upload MFEM Build
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: mfem-build-${{inputs.sanitizer}}-${{inputs.mpi}}
+      #     path: mfem/build
+      #     retention-days: 1
