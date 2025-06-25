@@ -6,7 +6,7 @@ permissions:
 on:
   # Run on pushes to main development branches
   push:
-    branches: ["master", "next"]
+    branches: ["main"]
   # Run on all pull requests
   pull_request:  [ main ]
   # Allow manual triggering for debugging
