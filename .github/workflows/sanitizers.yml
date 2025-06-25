@@ -469,8 +469,8 @@ jobs:
           echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
           echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
           echo "[METIS_DIR] ${{env.METIS_DIR}}"
-          echo "[MPI] MPI_INC: ${{MPI_INC}}"
-          echo "[MPI] MPI_LIB: ${{MPI_LIB}}"
+          echo "[MPI] MPI_INC: ${{env.MPI_INC}}"
+          echo "[MPI] MPI_LIB: ${{env.MPI_LIB}}"
       - name: Setup (LLVM_INC, LLVM_LIB)
         run: |
           echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
