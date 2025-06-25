@@ -17,98 +17,387 @@ concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
+env:
+  CLANG_VER: 18
+  LLVM_VER: 19.1.7    # https://github.com/llvm/llvm-project/releases
+  HYPRE_VER: 2.19.0   # https://github.com/hypre-space/hypre/releases
+  METIS_VER: 4.0.3
+  # https://clang.llvm.org/docs/AddressSanitizer.html
+  ASAN_OPTIONS: "detect_leaks=1,
+                 strict_init_order=1,
+                 strict_string_checks=1,
+                 check_initialization_order=1,
+                 detect_stack_use_after_return=1"
+  # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+  UBSAN_OPTIONS: "halt_on_error=1, print_stacktrace=1"
+  # https://clang.llvm.org/docs/MemorySanitizer.html
+  MSAN_OPTIONS: "poison_in_dtor=1"
+
 jobs:
-  man-split:
-    runs-on: ubuntu-latest
-    name: Manual split
-    steps:
-      - name: Touch
-        run: man split
+  # man-split:
+  #   runs-on: ubuntu-latest
+  #   name: Manual split
+  #   steps:
+  #     - name: Touch
+  #       run: man split
 
-  build-seq-mfem:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        sanitizer: [asan, msan, ubsan]
-    name: build-seq-${{matrix.sanitizer}}
-    steps:
-      - name: Touch build-seq-${{matrix.sanitizer}}
-        run:  touch build-seq-${{matrix.sanitizer}}
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: cache 
-          key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
-
-  build-par-mfem:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        sanitizer: [asan, msan, ubsan]
-    name: build-${{matrix.sanitizer}}-par
-    steps:
-      - name: Touch build-par-${{matrix.sanitizer}}
-        run:  touch build-par-${{matrix.sanitizer}}
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: cache 
-          key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
-
+  # Build HYPRE
   build-par-hypre:
     runs-on: ubuntu-latest
-    name: build-par-hypre
+    name: build-hypre
     steps:
-      - name: Run build Hypre
+      - name: Setup
         run: |
-          echo Running build Hypre
+          echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
+          echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
+      - name: Cache
+        id: hypre-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Build
+        if: steps.hypre-cache.outputs.cache-hit != 'true'
+        uses: mfem/github-actions/build-hypre@v2.5
+        with:
+          archive: ${{env.HYPRE_TGZ}}
+          dir: ${{env.HYPRE_DIR}}
+          target: int32
+          precision: fp64
+          build-system: make
 
+  # Build METIS
   build-par-metis:
     runs-on: ubuntu-latest
-    name: build-par-metis
+    name: build-metis
     steps:
-      - name: Run build Metis
+      - name: Setup
         run: |
-          echo Running build Metis
+          echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
+          echo "METIS_TGZ=metis-${{env.METIS_VER}}.tar.gz" >> $GITHUB_ENV
+      - name: Cache
+        id: metis-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Build
+        if: steps.metis-cache.outputs.cache-hit != 'true'
+        uses: mfem/github-actions/build-metis@v2.5
+        with:
+          archive: ${{env.METIS_TGZ}}
+          dir: ${{env.METIS_DIR}}
 
-  test-seq:
+  # Leak sanitizer suppression file
+  lsan-file:
+    runs-on: ubuntu-latest
+    name: lsan-file
+    steps:
+      - name: Setup
+        run: |
+          echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
+      - name: File
+        run: |
+          mkdir -p ${{env.ASAN_DIR}}
+          cat << EOF > ${{env.ASAN_DIR}}/asan.supp
+          leak:libevent_core-2.1.so
+          leak:ompi_mpi_finalize
+          leak:ompi_mpi_init
+          leak:PMPI_Init
+          leak:strdup # required Hypre 2.19.0
+          EOF
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: cache 
+          key:  cache-lsan-suppression-file
+
+  # LLVM libcxx 
+  # https://github.com/llvm/llvm-project/tree/main/libcxx
+  build-llvm-libcxx:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [msan, ubsan]
+        include:
+          - sanitizer: msan
+            llvm_use_sanitizer: "MemoryWithOrigins"
+          - sanitizer: ubsan
+            llvm_use_sanitizer: "Undefined"
+    name: build-libcxx-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        id: llvm-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.llvm_sanitizer}}
+      - name: Clone
+        if: steps.llvm-cache.outputs.cache-hit != 'true'
+        run: >
+          git clone --filter=blob:none --depth=1
+          --branch llvmorg-${{env.LLVM_VER}}
+          --no-checkout https://github.com/llvm/llvm-project.git llvm-project
+      - name: Checkout
+        if: steps.llvm-cache.outputs.cache-hit != 'true'
+        working-directory: llvm-project
+        run: |
+          git sparse-checkout set --cone
+          git checkout llvmorg-${{env.LLVM_VER}}
+          git sparse-checkout set cmake llvm/cmake runtimes libcxx libcxxabi
+      - name: Mkdir
+        if: steps.llvm-cache.outputs.cache-hit != 'true'
+        run: mkdir ${{env.LLVM_DIR}}
+      - name: CMake
+        if: steps.llvm-cache.outputs.cache-hit != 'true'
+        working-directory: ${{env.LLVM_DIR}}
+        run: >
+          VERBOSE=1
+          cmake -GNinja ../llvm-project/runtimes/
+          -DCMAKE_C_COMPILER=${{env.CC}}
+          -DCMAKE_CXX_COMPILER=${{env.CXX}}
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DLLVM_USE_SANITIZER=${{matrix.llvm_use_sanitizer}}
+          -DLLVM_BUILD_32_BITS=OFF
+          -DLIBCXXABI_USE_LLVM_UNWINDER=OFF
+          -DLLVM_INCLUDE_TESTS=OFF
+          -DLIBCXX_INCLUDE_TESTS=OFF
+          -DLIBCXX_INCLUDE_BENCHMARKS=OFF
+          -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi'
+      - name: Build
+        if: steps.llvm-cache.outputs.cache-hit != 'true'
+        working-directory: ${{env.LLVM_DIR}}
+        run: cmake --build . -- cxx cxxabi
+
+  # Build MFEM Serial with Sanitizers
+  build-seq-mfem:
+    needs: [lsan-file, build-llvm-libcxx]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+        include:
+          - sanitizer: asan
+            cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
+            ldflags: "-fsanitize=address"
+          - sanitizer: msan
+            cxxflags: "-fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor"
+            ldflags: "-fsanitize=memory"
+            llvm_sanitizer: "MemoryWithOrigins"
+          - sanitizer: ubsan
+            cxxflags: "-fsanitize=undefined"
+            ldflags: "-fsanitize=undefined"
+            llvm_sanitizer: "Undefined"
+    name: build-seq-mfem-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: cache 
+          key:  cache-build-seq-mfem-${{matrix.sanitizer}}
+      - name: Workspace
+        run: |
+          echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
+          echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Setup
+        run: |
+          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "LLVM_INC=${LLVM_DIR}/include/c++/v1" >> $GITHUB_ENV
+          echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
+          echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
+      - name: Echo
+        run: |
+          echo "[CC] ${{env.CC}}"
+          echo "[CXX] ${{env.CXX}}"
+          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
+          echo "[LLVM_INC] ${{env.LLVM_INC}}"
+          echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
+          echo "[CTEST] ${{env.CTEST}}"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+      - name: Build
+        uses: mfem/github-actions/build-mfem@v2.5
+        env:
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        with:
+          target: opt
+          mfem-dir: mfem
+          precision: fp64
+          os: ${{runner.os}}
+          library-only: true
+          build-system: cmake
+          mpi: ${{matrix.mpi}}
+          hypre-dir: ${{env.HYPRE_DIR}}
+          metis-dir: ${{env.METIS_DIR}}
+          config-options: >-
+            -GNinja
+            -DMPICXX=${{env.CXX}}
+            -DCMAKE_CXX_STANDARD=17
+            -DMFEM_USE_MEMALLOC=OFF
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=${{env.CXX}}
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+
+  # Build MFEM Parallel with Sanitizers
+  build-par-mfem:
+    needs: [lsan-file, build-llvm-libcxx]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [asan, ubsan]
+        include:
+          - sanitizer: asan
+            cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
+            ldflags: "-fsanitize=address"
+          - sanitizer: ubsan
+            cxxflags: "-fsanitize=undefined"
+            ldflags: "-fsanitize=undefined"
+            llvm_sanitizer: "Undefined"
+    name: build-par-mfem-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: cache 
+          key:  cache-build-par-mfem-${{matrix.sanitizer}}
+      - name: Workspace
+        run: |
+          echo "ASAN_DIR=${GITHUB_WORKSPACE}/asan" >> $GITHUB_ENV
+          echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Setup
+        run: |
+          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "LLVM_INC=${LLVM_DIR}/include/c++/v1" >> $GITHUB_ENV
+          echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
+          echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
+          echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${{env.ASAN_DIR}}/asan.supp" >> $GITHUB_ENV
+          echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
+      - name: Echo
+        run: |
+          echo "[CC] ${{env.CC}}"
+          echo "[CXX] ${{env.CXX}}"
+          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
+          echo "[LLVM_INC] ${{env.LLVM_INC}}"
+          echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
+          echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
+          echo "[METIS_DIR] ${{env.METIS_DIR}}"
+          echo "[CTEST] ${{env.CTEST}}"
+      - name: MPI Setup
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
+          echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
+          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
+          echo "[MPI] Version: $(mpicxx --showme:version)"
+          echo "[MPI] Compile: $(mpicxx --showme:compile)"
+          echo "[MPI] Link: $(mpicxx --showme:link)"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+      - name: Build
+        uses: mfem/github-actions/build-mfem@v2.5
+        env:
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        with:
+          target: opt
+          mfem-dir: mfem
+          precision: fp64
+          os: ${{runner.os}}
+          library-only: true
+          build-system: cmake
+          mpi: ${{matrix.mpi}}
+          hypre-dir: ${{env.HYPRE_DIR}}
+          metis-dir: ${{env.METIS_DIR}}
+          config-options: >-
+            -GNinja
+            -DMPICXX=${{env.CXX}}
+            -DCMAKE_CXX_STANDARD=17
+            -DMFEM_USE_MEMALLOC=OFF
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=${{env.CXX}}
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+  
+  test-seq-check:
     needs: [build-seq-mfem]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         sanitizer: [asan, msan, ubsan]
-        test: [examples, miniapps, tests]
-    name: test-seq-${{matrix.sanitizer}}-${{matrix.test}}
+    name: test-seq-check-${{matrix.sanitizer}}
     steps:
       - name: Restore
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
+          key:  cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+      - name: MFEM Check
+        working-directory: mfem/build
+        run: ninja -v check
 
-      - name: Run ${{ matrix.test }}
-        run: |
-          echo Running ${{ matrix.test }}
-
-  test-par:
-    needs: [build-par-mfem, build-par-hypre, build-par-metis]
+  test-par-check:
+    needs: [build-par-mfem]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        sanitizer: [asan, msan, ubsan]
-        test: [examples, miniapps, tests]
-    name: test-par-${{matrix.sanitizer}}-${{matrix.test}}
+        sanitizer: [asan, ubsan]
+    name: test-par-check-${{matrix.sanitizer}}
     steps:
       - name: Restore
         uses: actions/cache@v4
         with:
           path: cache
-          key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
+          key:  cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+      - name: MFEM Check
+        working-directory: mfem/build
+        run: ninja -v check
 
-      - name: Run ${{ matrix.test }}
-        run: |
-          echo Running ${{ matrix.test }}
+  # test-seq:
+  #   needs: [build-seq-mfem]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       sanitizer: [asan, msan, ubsan]
+  #       test: [examples, miniapps, tests]
+  #   name: test-seq-${{matrix.sanitizer}}-${{matrix.test}}
+  #   steps:
+  #     - name: Restore
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: cache
+  #         key:  cache-build-seq-${{matrix.sanitizer}}-${{github.sha}}
+  #     - name: Run ${{ matrix.test }}
+  #       run: |
+  #         echo Running ${{ matrix.test }}
 
+  # test-par:
+  #   needs: [build-par-mfem, build-par-hypre, build-par-metis]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       sanitizer: [asan, msan, ubsan]
+  #       test: [examples, miniapps, tests]
+  #   name: test-par-${{matrix.sanitizer}}-${{matrix.test}}
+  #   steps:
+  #     - name: Restore
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: cache
+  #         key:  cache-build-par-${{matrix.sanitizer}}-${{github.sha}}
+  #     - name: Run ${{ matrix.test }}
+  #       run: |
+  #         echo Running ${{ matrix.test }}
 
 # ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
 # ./unit_tests --filenames-as-tags --input-file ./tests
