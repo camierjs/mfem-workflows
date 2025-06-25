@@ -41,12 +41,27 @@ jobs:
   #     - name: Touch
   #       run: man split
 
+  # MPI Setup
+  # echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
+  # echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
+  # echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
+  # echo "[MPI] Version: $(mpicxx --showme:version)"
+  # echo "[MPI] Compile: $(mpicxx --showme:compile)"
+  # echo "[MPI] Link: $(mpicxx --showme:link)"
+  mpi-setup:
+    runs-on: ubuntu-latest
+    name: mpi-setup
+    steps:
+      - name: Setup
+        run: sudo apt-get install openmpi-bin libopenmpi-dev
+
   # Build HYPRE
   build-par-hypre:
+    needs: mpi-setup
     runs-on: ubuntu-latest
     name: build-hypre
     steps:
-      - name: Setup
+      - name: EnSetupv
         run: |
           echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
           echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
@@ -247,7 +262,7 @@ jobs:
 
   # Build MFEM Parallel with Sanitizers
   build-par-mfem:
-    needs: [lsan-file, build-llvm-libcxx]
+    needs: [mpi-setup, lsan-file, build-llvm-libcxx]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -291,15 +306,6 @@ jobs:
           echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
           echo "[METIS_DIR] ${{env.METIS_DIR}}"
           echo "[CTEST] ${{env.CTEST}}"
-      - name: MPI Setup
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
-          echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
-          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-          echo "[MPI] Version: $(mpicxx --showme:version)"
-          echo "[MPI] Compile: $(mpicxx --showme:compile)"
-          echo "[MPI] Link: $(mpicxx --showme:link)"
       - name: Checkout
         uses: actions/checkout@v4
         with:
