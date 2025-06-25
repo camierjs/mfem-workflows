@@ -520,7 +520,7 @@ jobs:
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: MFEM Check
-        # working-directory: mfem/examples
+        working-directory: mfem/examples
         # env:
         #   CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
         #   LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
