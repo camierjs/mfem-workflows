@@ -270,7 +270,6 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}'
-            -DCMAKE_EXE_LINKER_FLAGS_RELEASE='${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}'
       - name: Install
         if: steps.mfem-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
@@ -385,7 +384,6 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}'
-            -DCMAKE_EXE_LINKER_FLAGS_RELEASE='${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}'
       - name: Install
         if: steps.mfem-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
