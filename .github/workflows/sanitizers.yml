@@ -481,6 +481,10 @@ jobs:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Restore Hypre/Metis links
+        run: |
+            ln -s -f ${{env.HYPRE_DIR}} hypre
+            ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
         uses: actions/checkout@v4
         with:
