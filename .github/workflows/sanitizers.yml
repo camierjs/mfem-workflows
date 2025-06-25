@@ -232,10 +232,11 @@ jobs:
           echo "[LLVM_INC] ${{env.LLVM_INC}}"
           echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
           echo "[CTEST] ${{env.CTEST}}"
-      # - name: Checkout
-      #   uses: actions/checkout@v4
-      #   with:
-      #     path: mfem  # mfem-workflows  # mfem 🔥🔥
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem 
+          ref: ubsan
       - name: ls -la
         run: |
           pwd
@@ -253,7 +254,7 @@ jobs:
           mfem-dir: mfem
           hypre-dir: unused
           metis-dir: unused
-          mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
+          # mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
           os: ${{runner.os}}
           library-only: true
           build-system: cmake
@@ -324,10 +325,11 @@ jobs:
           echo "[MPI] Compile: $(mpicxx --showme:compile)"
           echo "[MPI] Link: $(mpicxx --showme:link)"
           echo "[CTEST] ${{env.CTEST}}"
-      # - name: Checkout
-      #   uses: actions/checkout@v4
-      #   with:
-      #     path: mfem
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
       - name: Build
         uses: mfem/github-actions/build-mfem@v2.5
         env:
@@ -337,7 +339,7 @@ jobs:
           mpi: par
           mfem-dir: mfem
           os: ${{runner.os}}
-          mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
+          # mfem-branch: ubsan  # 🔥🔥🔥 Checkout or this
           library-only: true
           build-system: cmake
           hypre-dir: ${{env.HYPRE_DIR}}
