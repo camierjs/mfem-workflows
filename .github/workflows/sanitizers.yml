@@ -564,11 +564,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: MFEM Check
+      - name: MFEM Examples
         working-directory: mfem/examples
         run: |
-          MFEM_INSTALL_DIR=../build/install make all -j 4
-          MFEM_INSTALL_DIR=../build/install make test
+          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j 4
+          MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test
 
   # Examples MFEM Parallel with Sanitizers
   test-par-examples:
@@ -637,7 +637,7 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: MFEM Check
+      - name: MFEM Examples
         working-directory: mfem/examples
         run: |
           MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j 4
