@@ -1,3 +1,4 @@
+---
 name: "Sanitizers"
 
 permissions:
@@ -8,7 +9,7 @@ on:
   push:
     branches: ["main"]
   # Run on all pull requests
-  pull_request:  [ main ]
+  pull_request: ["main"]
   # Allow manual triggering for debugging
   workflow_dispatch:
 
@@ -25,7 +26,7 @@ jobs:
       - name: Setup
         run: touch tests_binary
 
-      - name: Build        
+      - name: Build
         run: |
           cat << EOF > tests_binary
           3.141592653589793
@@ -36,7 +37,7 @@ jobs:
         with:
           path: build/  # Path to build output
           key: build-${{ github.sha }}
-  
+
   downstream:
     needs: build
     runs-on: ubuntu-latest
