@@ -28,6 +28,7 @@ jobs:
 
       - name: Build
         run: |
+          mkdir -p build
           cat << EOF > tests_binary
           3.141592653589793
           EOF
