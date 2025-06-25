@@ -371,8 +371,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: mfem
-          repository: mfem/mfem  # 🔥
-          ref: ubsan  # 🔥
+          ref: ubsan
+          repository: mfem/mfem # 🔥🔥🔥 Using MFEM/ubsan repository 
       - name: Build
         if: steps.mfem-cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
@@ -418,16 +418,16 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-seq-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+          key: cache-build-seq-mfem-${{matrix.sanitizer}}
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: mfem
-          repository: mfem/mfem  # 🔥
-          ref: ubsan  # 🔥
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository 
       - name: MFEM Check
         working-directory: mfem/examples
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-seq
 
   test-par-check:
     needs: [build-par-mfem]
@@ -444,13 +444,13 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-par-mfem-${{matrix.sanitizer}}  # -${{github.sha}}
+          key: cache-build-par-mfem-${{matrix.sanitizer}}
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: mfem
-          repository: mfem/mfem  # 🔥
-          ref: ubsan  # 🔥
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository 
       - name: MFEM Check
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
