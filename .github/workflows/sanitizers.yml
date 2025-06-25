@@ -97,6 +97,7 @@ jobs:
           dir: ${{env.METIS_DIR}}
 
   # Leak sanitizer suppression file
+  # strdup required for Hypre 2.19.0
   build-file-lsan:
     runs-on: ubuntu-latest
     name: build-file-lsan
@@ -109,7 +110,7 @@ jobs:
           leak:ompi_mpi_finalize
           leak:ompi_mpi_init
           leak:PMPI_Init
-          leak:strdup # required Hypre 2.19.0
+          leak:strdup
           EOF
       - name: Cache
         uses: actions/cache@v4
