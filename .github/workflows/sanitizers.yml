@@ -421,9 +421,9 @@ jobs:
           path: mfem-install
           fail-on-cache-miss: true
           key: cache-build-seq-mfem-${{matrix.sanitizer}}
-      - name: Patch config.mk
-        run: |
-          sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+      # - name: Patch config.mk
+      #   run: |
+      #     sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         run: cat mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
