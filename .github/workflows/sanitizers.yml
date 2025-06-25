@@ -438,9 +438,9 @@ jobs:
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: MFEM Check
         working-directory: mfem/examples
-        env:
-          CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
-          LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        # env:
+        #   CXXFLAGS: ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+        #   LDFLAGS: ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
 
   test-par-check:
@@ -461,6 +461,15 @@ jobs:
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
           echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
+      - name: Echo
+        run: |
+          echo "[CC] ${{env.CC}}"
+          echo "[CXX] ${{env.CXX}}"
+          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
+          echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
+          echo "[METIS_DIR] ${{env.METIS_DIR}}"
+          echo "[MPI] MPI_INC: ${{MPI_INC}}"
+          echo "[MPI] MPI_LIB: ${{MPI_LIB}}"
       - name: Setup (LLVM_INC, LLVM_LIB)
         run: |
           echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
