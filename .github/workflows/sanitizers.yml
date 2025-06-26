@@ -1208,14 +1208,14 @@ jobs:
         run: cat list-tags
       - name: Split Tests
         working-directory: mfem/tests/unit
-        run: split --verbose -n l/4 -d -a 1 list-tags
+        run: split --verbose -n l/4 -d -a 1 list-tags list-tags-
       - name: ls Split Files
         working-directory: mfem/tests/unit
         run: ls -l
       - name: Run Unit Tests
         working-directory: mfem/tests/unit
         run: |
-          ./unit_tests --filenames-as-tags --input-file ./list-tags_1
-          ./unit_tests --filenames-as-tags --input-file ./list-tags_2
-          ./unit_tests --filenames-as-tags --input-file ./list-tags_3
-          ./unit_tests --filenames-as-tags --input-file ./list-tags_4
+          ./unit_tests --filenames-as-tags --input-file ./list-tags-1
+          ./unit_tests --filenames-as-tags --input-file ./list-tags-2
+          ./unit_tests --filenames-as-tags --input-file ./list-tags-3
+          ./unit_tests --filenames-as-tags --input-file ./list-tags-4
