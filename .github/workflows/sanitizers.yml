@@ -1178,6 +1178,13 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Patch Ninja
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja copy_data
       - name: Download
         uses: actions/download-artifact@v4
         with:
