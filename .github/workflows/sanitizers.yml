@@ -1,3 +1,4 @@
+# GitHub Actions:
 # https://github.com/actions/cache/blob/main/restore/README.md
 ---
 
@@ -223,22 +224,22 @@ jobs:
     name: build-seq-mfem-${{matrix.sanitizer}}
     steps:
       - name: Cache
-        id: cache-mfem
-        uses: actions/cache@v4
+        id: cache
+        uses: actions/cache/restore@v4
         with:
           path: mfem/build
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Env
         run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
           echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
@@ -246,12 +247,12 @@ jobs:
           echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
           echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
       - name: Setup (LLVM)
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
           echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "[CC] ${{env.CC}}"
           echo "[CXX] ${{env.CXX}}"
@@ -262,18 +263,18 @@ jobs:
           echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
           echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Build
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
         env:
-          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}  # ${{env.MPI_INC}}
-          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}  # ${{env.MPI_LIB}}
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}
         with:
           mpi: seq
           mfem-dir: mfem
@@ -292,7 +293,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
       - name: Delete object files
-        if: steps.cache-mfem.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: find . -type f -name '*.o' -delete
       - name: Upload
@@ -308,130 +309,128 @@ jobs:
   # Build MFEM Parallel
   # Cache:   cache-mfem-par-${{matrix.sanitizer}}
   # Upload: upload-mfem-par-${{matrix.sanitizer}}
-  # build-par-mfem:
-  #   needs: [build-llvm-libcxx, build-hypre, build-metis]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, ubsan]
-  #       include:
-  #         - sanitizer: asan
-  #           cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
-  #           ldflags: "-fsanitize=address"
-  #         - sanitizer: ubsan
-  #           cxxflags: "-fsanitize=undefined"
-  #           ldflags: "-fsanitize=undefined"
-  #   name: build-par-mfem-${{matrix.sanitizer}}
-  #   steps:
-  #     - name: Cache
-  #       id: cache-mfem
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem/build # mfem-install
-  #         key: cache-mfem-par-${{matrix.sanitizer}}
-  #     - name: Env
-  #       run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
-  #     - name: Restore LLVM libcxx
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Setup
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       run: |
-  #         sudo apt-get install openmpi-bin libopenmpi-dev
-  #         echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-  #         echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
-  #         echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
-  #         echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #         echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-  #         echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-  #         echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
-  #         echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
-  #         echo "MPI_INC=$(mpicxx --showme:compile)" >> $GITHUB_ENV
-  #         echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-  #     - name: Setup (LLVM)
-  #       if: steps.cache-mfem-outputs.cache-hit != 'true'
-  #       run: |
-  #         echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
-  #         echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Echo
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       run: |
-  #         echo "[CC] ${{env.CC}}"
-  #         echo "[CXX] ${{env.CXX}}"
-  #         echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
-  #         echo "[LLVM_INC] ${{env.LLVM_INC}}"
-  #         echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
-  #         echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
-  #         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
-  #         echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
-  #         echo "[METIS_DIR] ${{env.METIS_DIR}}"
-  #         echo "[MPI] Version: $(mpicxx --showme:version)"
-  #         echo "[MPI] Compile: $(mpicxx --showme:compile)"
-  #         echo "[MPI] Link: $(mpicxx --showme:link)"
-  #         echo "[CTEST] ${{env.CTEST}}"
-  #     - name: Restore Hypre
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.HYPRE_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-  #     - name: Restore Metis
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.METIS_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-  #     - name: Checkout
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     - name: Build
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       uses: mfem/github-actions/build-mfem@v2.5
-  #       with:
-  #         mpi: par
-  #         mfem-dir: mfem
-  #         os: ${{runner.os}}
-  #         library-only: true
-  #         build-system: cmake
-  #         hypre-dir: ${{env.HYPRE_DIR}}
-  #         metis-dir: ${{env.METIS_DIR}}
-  #         config-options: >-
-  #           -GNinja
-  #           -DMPICXX=${{env.CXX}}
-  #           -DCMAKE_CXX_STANDARD=17
-  #           -DMFEM_USE_MEMALLOC=OFF
-  #           -DCMAKE_BUILD_TYPE=Release
-  #           -DCMAKE_VERBOSE_MAKEFILE=ON
-  #           -DCMAKE_CXX_COMPILER=${{env.CXX}}
-  #           -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/mfem-install
-  #           -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}'
-  #     # - name: Install
-  #     #   if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #     #   working-directory: mfem/build
-  #     #   run: ninja install
-  #     - name: Delete object files
-  #       if: steps.cache-mfem.outputs.cache-hit != 'true'
-  #       working-directory: mfem/build
-  #       run: find . -type f -name '*.o' -delete
-  #     - name: Upload
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: upload-mfem-par-${{matrix.sanitizer}}
-  #         path: mfem/build # mfem-install
-  #         if-no-files-found: error
-  #         retention-days: 1
-  #         overwrite: false
+  build-par-mfem:
+    needs: [build-llvm-libcxx, build-hypre, build-metis]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+        include:
+          - sanitizer: asan
+            cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
+            ldflags: "-fsanitize=address"
+          - sanitizer: ubsan
+            cxxflags: "-fsanitize=undefined"
+            ldflags: "-fsanitize=undefined"
+    name: build-par-mfem-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build
+          key: cache-mfem-par-${{matrix.sanitizer}}
+      - name: Env
+        run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Setup
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
+          echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
+          echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
+          echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
+          echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
+      - name: Setup (LLVM)
+        if: steps.cache-outputs.cache-hit != 'true'
+        run: |
+          echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
+          echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Echo
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "[CC] ${{env.CC}}"
+          echo "[CXX] ${{env.CXX}}"
+          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
+          echo "[LLVM_INC] ${{env.LLVM_INC}}"
+          echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
+          echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
+          echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
+          echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
+          echo "[METIS_DIR] ${{env.METIS_DIR}}"
+          echo "[MPI] Version: $(mpicxx --showme:version)"
+          echo "[MPI] Compile: $(mpicxx --showme:compile)"
+          echo "[MPI] Link: $(mpicxx --showme:link)"
+          echo "[CTEST] ${{env.CTEST}}"
+      - name: Checkout
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore Hypre
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: mfem/github-actions/build-mfem@v2.5
+        env:
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        with:
+          mpi: par
+          mfem-dir: mfem
+          os: ${{runner.os}}
+          library-only: true
+          build-system: cmake
+          hypre-dir: ${{env.HYPRE_DIR}}
+          metis-dir: ${{env.METIS_DIR}}
+          config-options: >-
+            -GNinja
+            -DMPICXX=${{env.CXX}}
+            -DCMAKE_CXX_STANDARD=17
+            -DMFEM_USE_MEMALLOC=OFF
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=${{env.CXX}}
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+      - name: Delete object files
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: find . -type f -name '*.o' -delete
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
+          path: mfem/build 
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
 
   ###################
   # Check MFEM Serial
@@ -447,7 +446,7 @@ jobs:
     name: test-seq-check-${{matrix.sanitizer}}
     steps:
       - name: Cache
-        id: check-seq-cache
+        id: cache
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
@@ -457,28 +456,28 @@ jobs:
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         id: mfem-cache
         uses: actions/cache/restore@v4
         with:
@@ -486,11 +485,11 @@ jobs:
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: MFEM Check
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja -v check
 
@@ -498,117 +497,101 @@ jobs:
   # Check MFEM Parallel
   # Cache:   cache-check-par-${{matrix.sanitizer}}
   # Upload: upload-check-par-${{matrix.sanitizer}}
-  # test-par-check:
-  #   needs: [build-file-lsan, build-par-mfem]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, ubsan]
-  #   name: test-par-check-${{matrix.sanitizer}}
-  #   steps:
-  #     - name: Cache
-  #       id: check-par-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem/build #mfem-install
-  #         key: cache-check-par-${{matrix.sanitizer}}
-  #     - name: Setup
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         sudo apt-get install openmpi-bin libopenmpi-dev
-  #         echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-  #         echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
-  #         echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-  #         echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-  #         echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-  #         echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-  #         echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-  #     - name: Echo
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         echo "[CC] ${{env.CC}}"
-  #         echo "[CXX] ${{env.CXX}}"
-  #         echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
-  #         echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
-  #         echo "[METIS_DIR] ${{env.METIS_DIR}}"
-  #         echo "[MPI] MPI_LIB: ${{env.MPI_LIB}}"
-  #     - name: Setup (LLVM_LIB)
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LDFLAGS)
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Restore MFEM # 🔥 AFTER checkout ?!
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       id: mfem-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem/build # mfem-install
-  #         fail-on-cache-miss: true
-  #         key: cache-mfem-par-${{matrix.sanitizer}}
-  #     - name: Patch config.mk
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       working-directory: mfem/build
-  #       run: sed -i -e 's/CXX_SHARED_LIBRARY_LINKER__mfem_RelWithDebInfo.*/CUSTOM_COMMAND/' build.ninja
-  #     # - name: Patch config.mk
-  #     #   if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #     #   run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
-  #     # - name: Cat config.mk
-  #     #   if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #     #   run: cat mfem-install/share/mfem/config.mk
-  #     - name: Restore LLVM libcxx
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Restore Hypre
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.HYPRE_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-  #     - name: Restore Metis
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.METIS_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-  #     - name: Restore LSAN
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LSAN_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-lsan-suppression-file
-  #     - name: Hypre/Metis links
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-  #     - name: Checkout
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     - name: MFEM Check
-  #       if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #       working-directory: mfem/examples
-  #       # run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
-  #       run: ninja -v check
-  #     # - name: Upload
-  #     #   if: steps.check-par-cache.outputs.cache-hit != 'true'
-  #     #   uses: actions/upload-artifact@v4
-  #     #   with:
-  #     #     name: upload-check-par-${{matrix.sanitizer}}
-  #     #     path: mfem/examples/ex1p
-  #     #     if-no-files-found: error
-  #     #     retention-days: 1
-  #     #     overwrite: false
+  test-par-check:
+    needs: [build-file-lsan, build-par-mfem]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+    name: test-par-check-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build
+          key: cache-check-par-${{matrix.sanitizer}}
+      - name: Setup
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
+          echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Echo
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "[CC] ${{env.CC}}"
+          echo "[CXX] ${{env.CXX}}"
+          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
+          echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
+          echo "[METIS_DIR] ${{env.METIS_DIR}}"
+          echo "[MPI] MPI_LIB: ${{env.MPI_LIB}}"
+      - name: Setup (LLVM_LIB)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore Hypre
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Restore LSAN
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Hypre/Metis links
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      - name: Checkout
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore MFEM
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: mfem-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build 
+          fail-on-cache-miss: true
+          key: cache-mfem-par-${{matrix.sanitizer}}
+      - name: Patch Ninja
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: MFEM Check
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ninja -v check
 
   #############################################################################
 
