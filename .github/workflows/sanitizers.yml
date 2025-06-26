@@ -799,38 +799,38 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  ########################
-  # Unit tests MFEM Serial
-  # Cache:   cache-unit-seq-${{matrix.sanitizer}}
-  # Upload: upload-unit-seq-${{matrix.sanitizer}}
-  test-seq-unit:
+  ######################
+  # Miniapps MFEM Serial
+  # Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
+  # Upload: upload-miniapps-seq-${{matrix.sanitizer}}
+  test-seq-miniapps:
     needs: [test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-    name: test-seq-unit-${{matrix.sanitizer}}
+    name: test-seq-miniapps-${{matrix.sanitizer}}
     steps:
-      - name: Cache
-        id: unit-seq-cache
-        uses: actions/cache@v4
-        with:
-          path: mfem-install
-          key: cache-unit-seq-${{matrix.sanitizer}}
+      # - name: Cache
+      #   id: cache-seq-miniapps
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem-install
+          # key: cache-miniapps-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore MFEM
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         id: mfem-cache
         uses: actions/cache@v4
         with:
@@ -838,46 +838,138 @@ jobs:
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Build Unit Tests
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/tests/unit
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
-      - name: Test Unit Tests
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/tests/unit
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
-      - name: Upload
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v4
+      - name: Makefile
+        working-directory: mfem/miniapps
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        # 🔥🔥🔥 NOT ALL MINIAPP_DIRS
+        run: |
+          cat <<- EOF > makefile
+          #MINIAPP_DIRS := \$(shell find . -type d -maxdepth 1 -not -path . -not -path './.*')
+          MINIAPP_DIRS := solvers navier toys
+          MINIAPP_TEST_DIRS := \$(filter-out %/common,\$(MINIAPP_DIRS))
+          # Target to run tests in all miniapp directories
+          test-miniapps:
+          <tab>@for dir in \$(MINIAPP_TEST_DIRS); do \\
+          <tab>    if [ -f \$\$dir/makefile ]; then \\
+          <tab>        echo "Running tests in \$\$dir ..."; \\
+          <tab>        cd \$\$dir && MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc) && \\
+          <tab>        MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests failed in \$\$dir"; exit 1; }; \\
+          <tab>        cd - >/dev/null; \\
+          <tab>    else \\
+          <tab>        echo "Skipping \$\$dir: No Makefile found"; \\
+          <tab>    fi; \\
+          <tab>done
+          EOF
+      - name: Sed Tabs
+        working-directory: mfem/miniapps
+        run: sed -i -e 's/<tab>/\t/g' makefile
+      - name: Cat makefile
+        working-directory: mfem/miniapps
+        run: cat makefile
+      - name: Test Miniapps
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        working-directory: mfem/miniapps
+        run: make || { echo "Tests in $${dir} failed!"; exit 1; }
+
+  ########################
+  # Miniapps MFEM Parallel
+  # Cache:   cache-miniapps-par-${{matrix.sanitizer}}
+  # Upload: upload-miniapps-par-${{matrix.sanitizer}}
+  test-par-miniapps:
+    needs: [test-par-check]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+    name: test-par-miniapps-${{matrix.sanitizer}}
+    steps:
+      # - name: Cache
+      #   id: cache-par-miniapps
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem-install
+      #     key: cache-miniapps-par-${{matrix.sanitizer}}
+      - name: Setup
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        run: |
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Setup (LLVM_LIB)
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore MFEM
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        id: mfem-cache
+        uses: actions/cache@v4
         with:
-          name: upload-unit-seq-${{matrix.sanitizer}}
-          path: mfem/tests/unit/unit_tests
-          if-no-files-found: error
-          retention-days: 1
-          overwrite: false
+          path: mfem-install
+          fail-on-cache-miss: true
+          key: cache-mfem-par-${{matrix.sanitizer}}
+      - name: Patch config.mk
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+      - name: Restore LLVM libcxx
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Makefile
+        working-directory: mfem/miniapps
+        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); 
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
+        run: |
+          cat << EOF > makefile
+          MINIAPP_DIRS := $(shell find . -type d -maxdepth 1 -not -path .)
+          MINIAPP_TEST_DIRS := $(filter-out %/common,$(MINIAPP_DIRS))
+          test-miniapps:
+            for dir in $(MINIAPP_TEST_DIRS); do \
+              echo "Running tests in $${dir} ..."; \
+          EOF
+          make
 
   ##########################
   # Unit tests MFEM Parallel
@@ -983,38 +1075,38 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  ######################
-  # Miniapps MFEM Serial
-  # Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
-  # Upload: upload-miniapps-seq-${{matrix.sanitizer}}
-  test-seq-miniapps:
+  ########################
+  # Unit tests MFEM Serial 
+  # Cache:   cache-unit-seq-${{matrix.sanitizer}}
+  # Upload: upload-unit-seq-${{matrix.sanitizer}}
+  test-seq-unit:
     needs: [test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-    name: test-seq-miniapps-${{matrix.sanitizer}}
+    name: test-seq-unit-${{matrix.sanitizer}}
     steps:
-      # - name: Cache
-      #   id: cache-seq-miniapps
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: mfem-install
-          # key: cache-miniapps-seq-${{matrix.sanitizer}}
+      - name: Cache
+        id: unit-seq-cache
+        uses: actions/cache@v4
+        with:
+          path: mfem-install
+          key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore MFEM
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         id: mfem-cache
         uses: actions/cache@v4
         with:
@@ -1022,136 +1114,120 @@ jobs:
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Makefile
-        working-directory: mfem/miniapps
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
-        run: |
-          cat <<- EOF > makefile
-          MINIAPP_DIRS := \$(shell find . -type d -maxdepth 1 -not -path . -not -path './.*')
-          MINIAPP_TEST_DIRS := \$(filter-out %/common,\$(MINIAPP_DIRS))
-          # Target to run tests in all miniapp directories
-          test-miniapps:
-          <tab>@for dir in \$(MINIAPP_TEST_DIRS); do \\
-          <tab>    if [ -f \$\$dir/makefile ]; then \\
-          <tab>        echo "Running tests in \$\$dir ..."; \\
-          <tab>        cd \$\$dir && MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all && \\
-          <tab>        MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests failed in \$\$dir"; exit 1; }; \\
-          <tab>        cd - >/dev/null; \\
-          <tab>    else \\
-          <tab>        echo "Skipping \$\$dir: No Makefile found"; \\
-          <tab>    fi; \\
-          <tab>done
-          EOF
-      - name: Sed Tabs
-        working-directory: mfem/miniapps
-        run: sed -i -e 's/<tab>/\t/g' makefile
-      - name: Cat makefile
-        working-directory: mfem/miniapps
-        run: cat makefile
-      - name: Test Miniapps
-        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
-        working-directory: mfem/miniapps
-        run: make || { echo "Tests in $${dir} failed!"; exit 1; }
+      - name: Build Unit Tests
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        working-directory: mfem/tests/unit
+        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
+      # - name: Test Unit Tests
+      #   # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+      #   working-directory: mfem/tests/unit
+      #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
+      - name: Upload
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/tests/unit/unit_tests
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
 
-  ########################
-  # Miniapps MFEM Parallel
-  # Cache:   cache-miniapps-par-${{matrix.sanitizer}}
-  # Upload: upload-miniapps-par-${{matrix.sanitizer}}
-  test-par-miniapps:
-    needs: [test-par-check]
+  ############################
+  # Unit tests MFEM Serial RUN
+  # Cache:   cache-unit-seq-${{matrix.sanitizer}}
+  # Upload: upload-unit-seq-${{matrix.sanitizer}}
+  test-seq-unit-split:
+    needs: [test-seq-unit]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        sanitizer: [asan, ubsan]
-    name: test-par-miniapps-${{matrix.sanitizer}}
+        sanitizer: [asan, msan, ubsan]
+    name: test-seq-unit-split-${{matrix.sanitizer}}
     steps:
       # - name: Cache
-      #   id: cache-par-miniapps
+      #   id: unit-seq-cache
       #   uses: actions/cache@v4
       #   with:
       #     path: mfem-install
-      #     key: cache-miniapps-par-${{matrix.sanitizer}}
+      #     key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      - name: Restore MFEM
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
-        id: mfem-cache
-        uses: actions/cache@v4
-        with:
-          path: mfem-install
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch config.mk
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+      # - name: Restore MFEM
+      #   # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+      #   id: mfem-cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem-install
+      #     fail-on-cache-miss: true
+      #     key: cache-mfem-seq-${{matrix.sanitizer}}
+      # - name: Patch config.mk
+      #   if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+      #   run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Makefile
-        working-directory: mfem/miniapps
-        # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
-        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); 
-        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
-        run: |
-          cat << EOF > makefile
-          MINIAPP_DIRS := $(shell find . -type d -maxdepth 1 -not -path .)
-          MINIAPP_TEST_DIRS := $(filter-out %/common,$(MINIAPP_DIRS))
-          test-miniapps:
-            for dir in $(MINIAPP_TEST_DIRS); do \
-              echo "Running tests in $${dir} ..."; \
-          EOF
-          make
+      # https://github.com/actions/download-artifact
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/tests/unit/unit_tests
+
+      # - name: Build Unit Tests
+      #   if: steps.unit-seq-cache.outputs.cache-hit != 'true'
+      #   working-directory: mfem/tests/unit
+      #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
 
 # Split unit tests into separate files with:
 # ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
@@ -1162,12 +1238,3 @@ jobs:
 #   steps:
 #     - name: Touch
 #       run: man split
-
-# upload-artifact
-# https://github.com/marketplace/actions/upload-a-build-artifact
-      # - name: Upload MFEM Build
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: mfem-build-${{inputs.sanitizer}}-${{inputs.mpi}}
-      #     path: mfem/build
-      #     retention-days: 1
