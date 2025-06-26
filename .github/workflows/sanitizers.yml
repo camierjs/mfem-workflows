@@ -38,6 +38,7 @@ env:
 jobs:
   #############
   # Build HYPRE
+  # Cache: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
   build-hypre:
     runs-on: ubuntu-latest
     name: build-hypre
@@ -67,6 +68,7 @@ jobs:
 
   #############
   # Build METIS
+  # Cache: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
   build-metis:
     runs-on: ubuntu-latest
     name: build-metis
@@ -94,6 +96,7 @@ jobs:
   #######################
   # LSAN suppression file
   # strdup required for Hypre 2.19.0
+  # Cache: cache-lsan-suppression-file
   build-file-lsan:
     runs-on: ubuntu-latest
     name: build-file-lsan
@@ -119,6 +122,7 @@ jobs:
   #############
   # LLVM libcxx
   # https://github.com/llvm/llvm-project/tree/main/libcxx
+  # Cache: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
   build-llvm-libcxx:
     runs-on: ubuntu-latest
     strategy:
@@ -185,6 +189,8 @@ jobs:
 
   ###################
   # Build MFEM Serial
+  # Cache:   cache-mfem-seq-${{matrix.sanitizer}}
+  # Upload: upload-mfem-seq-${{matrix.sanitizer}}
   build-seq-mfem:
     needs: [build-llvm-libcxx]
     runs-on: ubuntu-latest
@@ -286,6 +292,8 @@ jobs:
 
   #####################
   # Build MFEM Parallel
+  # Cache:   cache-mfem-par-${{matrix.sanitizer}}
+  # Upload: upload-mfem-par-${{matrix.sanitizer}}
   build-par-mfem:
     needs: [build-llvm-libcxx, build-hypre, build-metis]
     runs-on: ubuntu-latest
@@ -409,6 +417,8 @@ jobs:
 
   ###################
   # Check MFEM Serial
+  # Cache:   cache-check-seq-${{matrix.sanitizer}}
+  # Upload: upload-check-seq-${{matrix.sanitizer}}
   test-seq-check:
     needs: [build-file-lsan, build-seq-mfem]
     runs-on: ubuntu-latest
@@ -423,7 +433,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
-          key: cache-test-seq-check-${{matrix.sanitizer}}
+          key: cache-check-seq-${{matrix.sanitizer}}
       - name: Setup
         run: |
           echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
@@ -483,7 +493,10 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  # Check MFEM Parallel with Sanitizers
+  #####################
+  # Check MFEM Parallel
+  # Cache:   cache-check-par-${{matrix.sanitizer}}
+  # Upload: upload-check-par-${{matrix.sanitizer}}
   test-par-check:
     needs: [build-file-lsan, build-par-mfem]
     runs-on: ubuntu-latest
@@ -498,7 +511,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
-          key: cache-test-par-check-${{matrix.sanitizer}}
+          key: cache-check-par-${{matrix.sanitizer}}
       - name: Setup
         if: steps.check-par-cache.outputs.cache-hit != 'true'
         run: |
@@ -584,7 +597,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: upload-test-par-check-${{matrix.sanitizer}}
+          name: upload-check-par-${{matrix.sanitizer}}
           path: mfem/examples/ex1p
           if-no-files-found: error
           retention-days: 1
@@ -592,6 +605,8 @@ jobs:
 
   ######################
   # Examples MFEM Serial
+  # Cache:   cache-examples-seq-${{matrix.sanitizer}}
+  # Upload: upload-examples-seq-${{matrix.sanitizer}}
   test-seq-examples:
     needs: [test-seq-check]
     runs-on: ubuntu-latest
@@ -606,7 +621,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
-          key: cache-seq-examples-${{matrix.sanitizer}}
+          key: cache-examples-seq-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-seq-examples.outputs.cache-hit != 'true'
         run: |
@@ -661,7 +676,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: upload-seq-examples-${{matrix.sanitizer}}
+          name: upload-examples-seq-${{matrix.sanitizer}}
           path: mfem/examples
           if-no-files-found: error
           retention-days: 1
@@ -669,6 +684,8 @@ jobs:
 
   ########################
   # Examples MFEM Parallel
+  # Cache:   cache-examples-par-${{matrix.sanitizer}}
+  # Upload: upload-examples-par-${{matrix.sanitizer}}
   test-par-examples:
     needs: [test-par-check]
     runs-on: ubuntu-latest
@@ -683,7 +700,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mfem-install
-          key: cache-examples-par-cache-${{matrix.sanitizer}}
+          key: cache-examples-par-${{matrix.sanitizer}}
       - name: Setup
         if: steps.examples-par-cache.outputs.cache-hit != 'true'
         run: |
@@ -770,6 +787,8 @@ jobs:
 
   ########################
   # Unit tests MFEM Serial
+  # Cache:   cache-unit-seq-${{matrix.sanitizer}}
+  # Upload: upload-unit-seq-${{matrix.sanitizer}}
   test-seq-unit:
     needs: [test-seq-check]
     runs-on: ubuntu-latest
@@ -847,6 +866,8 @@ jobs:
 
   ##########################
   # Unit tests MFEM Parallel
+  # Cache:   cache-unit-par-${{matrix.sanitizer}}
+  # Upload: upload-unit-par-${{matrix.sanitizer}}
   test-par-unit:
     needs: [test-par-check]
     runs-on: ubuntu-latest
