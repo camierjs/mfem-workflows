@@ -1198,18 +1198,11 @@ jobs:
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/tests/unit/unit_tests
-
-      # - name: Build Unit Tests
-      #   if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-      #   working-directory: mfem/tests/unit
-      #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
-
-# Split unit tests into separate files with:
-# ./unit_tests --filenames-as-tags --list-tags|grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
-# ./unit_tests --filenames-as-tags --input-file ./tests
-# man-split:
-#   runs-on: ubuntu-latest
-#   name: Manual split
-#   steps:
-#     - name: Touch
-#       run: man split
+      - name: Set Permissions
+        run: chmod -R u+rwx mfem/tests/unit/unit_tests
+      - name: Split Unit Tests
+        working-directory: mfem/tests/unit
+        run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
+      - name: Run Unit Tests
+        working-directory: mfem/tests/unit
+        run: ./unit_tests --filenames-as-tags --input-file ./tests
