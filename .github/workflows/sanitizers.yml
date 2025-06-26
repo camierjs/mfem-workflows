@@ -453,6 +453,7 @@ jobs:
           path: mfem/build/examples/ex1
           key: cache-check-seq-${{matrix.sanitizer}}
       - name: Setup
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
@@ -514,6 +515,7 @@ jobs:
           path: mfem/build/examples/ex1p
           key: cache-check-par-${{matrix.sanitizer}}
       - name: Setup
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
