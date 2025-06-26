@@ -43,15 +43,17 @@ env:
 
 jobs:
   #######################
-  # Man pages: sed, split
-  # man:
-  #   runs-on: ubuntu-latest
-  #   name: man
-  #   steps:
-  #     - name: sed
-  #       run: man sed
-  #     - name: split
-  #       run: man split
+  # Man pages: sed, split, shuf
+  man:
+    runs-on: ubuntu-latest
+    name: man
+    steps:
+      - name: sed
+        run: man sed
+      - name: split
+        run: man split
+      - name: shuf
+        run: man shuf
 
   #############
   # Build HYPRE
@@ -1219,7 +1221,9 @@ jobs:
         run: cat list-test-names
       - name: Split list-test-names
         working-directory: mfem/build/tests/unit
-        run: split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
+        run: |
+          shuf list-test-names -o list-test-names
+          split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
