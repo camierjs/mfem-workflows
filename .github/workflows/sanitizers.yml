@@ -1065,7 +1065,6 @@ jobs:
         working-directory: mfem/tests/unit
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
       - name: Upload
-        if: steps.unit-par-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-par-${{matrix.sanitizer}}
@@ -1146,7 +1145,6 @@ jobs:
       #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
       # https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
