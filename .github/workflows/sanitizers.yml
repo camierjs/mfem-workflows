@@ -683,7 +683,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-examples-seq-${{matrix.sanitizer}}
-          path: mfem/examples
+          path: mfem/examples/ex1
           if-no-files-found: error
           retention-days: 1
           overwrite: false
@@ -787,7 +787,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-examples-par-${{matrix.sanitizer}}
-          path: mfem/examples
+          path: mfem/examples/ex1p
           if-no-files-found: error
           retention-days: 1
           overwrite: false
