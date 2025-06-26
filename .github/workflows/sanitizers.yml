@@ -1,5 +1,6 @@
 # GitHub Actions:
-# https://github.com/actions/cache/blob/main/restore/README.md
+#  - cache:   https://github.com/marketplace/actions/cache
+#  - restore: https://github.com/actions/cache/blob/main/restore/README.md
 ---
 
 name: "Sanitizers"
@@ -448,7 +449,6 @@ jobs:
       - name: Cache
         id: cache
         uses: actions/cache@v4
-        # uses: actions/cache/restore@v4
         with:
           path: mfem/build
           key: cache-check-seq-${{matrix.sanitizer}}
@@ -510,7 +510,6 @@ jobs:
       - name: Cache
         id: cache
         uses: actions/cache@v4
-        # uses: actions/cache/restore@v4
         with:
           path: mfem/build
           key: cache-check-par-${{matrix.sanitizer}}
