@@ -957,6 +957,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja -v tests/unit/all
+        # 🔥 Should run all but unit_tests here
       - name: Delete object files
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build/tests/unit
@@ -1037,7 +1038,9 @@ jobs:
         run: cat list-test-names
       - name: Split list-test-names
         working-directory: mfem/build/tests/unit
-        run: split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
+        run: |
+          shuf list-test-names -o list-test-names
+          split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
@@ -1125,6 +1128,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja -v tests/unit/all
+        # 🔥 Should run all but punit_tests here
       - name: Delete object files
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build/tests/unit
