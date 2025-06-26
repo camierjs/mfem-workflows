@@ -1136,16 +1136,16 @@ jobs:
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
         working-directory: mfem/build/tests/unit
-        run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > list-tags
-      - name: Cat list-tags
+        run: ./unit_tests --list-test-names-only | tail -n +2 > list-test-names
+      - name: Cat list-test-names
         working-directory: mfem/build/tests/unit
-        run: cat list-tags
-      - name: Split Tests
+        run: cat list-test-names
+      - name: Split list-test-names
         working-directory: mfem/build/tests/unit
-        run: split --verbose -n l/4 -d -a 1 list-tags list-tags-
+        run: split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}} --min-duration 1
+        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
