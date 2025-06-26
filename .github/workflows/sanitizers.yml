@@ -1195,6 +1195,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/tests/unit
       - name: ls
         run: |
           ls -l
