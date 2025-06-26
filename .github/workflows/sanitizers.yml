@@ -987,12 +987,12 @@ jobs:
         sanitizer: [asan, msan, ubsan]
     name: test-seq-miniapps-${{matrix.sanitizer}}
     steps:
-      - name: Cache
-        id: cache-seq-miniapps
-        uses: actions/cache@v4
-        with:
-          path: mfem-install
-          key: cache-miniapps-seq-${{matrix.sanitizer}}
+      # - name: Cache
+      #   id: cache-seq-miniapps
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem-install
+      #     key: cache-miniapps-seq-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         run: |
@@ -1064,12 +1064,12 @@ jobs:
         sanitizer: [asan, ubsan]
     name: test-par-miniapps-${{matrix.sanitizer}}
     steps:
-      - name: Cache
-        id: cache-par-miniapps
-        uses: actions/cache@v4
-        with:
-          path: mfem-install
-          key: cache-miniapps-par-${{matrix.sanitizer}}
+      # - name: Cache
+      #   id: cache-par-miniapps
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem-install
+      #     key: cache-miniapps-par-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
         run: |
