@@ -289,10 +289,6 @@ jobs:
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
-      # - name: Install
-      #   if: steps.cache-mfem.outputs.cache-hit != 'true'
-      #   working-directory: mfem/build
-      #   run: ninja install
       - name: Delete object files
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         working-directory: mfem/build
@@ -452,24 +448,12 @@ jobs:
         id: check-seq-cache
         uses: actions/cache@v4
         with:
-          path: mfem/build # mfem-install
+          path: mfem/build
           key: cache-check-seq-${{matrix.sanitizer}}
       - name: Setup
         run: |
-          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Setup (LLVM_LIB)
-        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-      - name: Setup (LLVM_LDFLAGS)
-        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      # - name: Patch config.mk
-      #   if: steps.check-seq-cache.outputs.cache-hit != 'true'
-      #   run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
-      # - name: Cat config.mk
-      #   if: steps.check-seq-cache.outputs.cache-hit != 'true'
-      #   run: cat mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -496,36 +480,17 @@ jobs:
         id: mfem-cache
         uses: actions/cache@v4
         with:
-          path: mfem/build # mfem-install
+          path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: LS mfem/build
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: ls -l
       - name: Patch Ninja
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Cat build.ninja
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: cat build.ninja
       - name: MFEM Check
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja -v check
-        # working-directory: mfem/examples
-        # run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
-      # - name: Upload
-      #   if: steps.check-seq-cache.outputs.cache-hit != 'true'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: upload-check-seq-${{matrix.sanitizer}}
-      #     path: mfem/examples/ex1
-      #     if-no-files-found: error
-      #     retention-days: 1
-      #     overwrite: false
 
   #####################
   # Check MFEM Parallel
