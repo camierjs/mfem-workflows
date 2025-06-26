@@ -38,6 +38,7 @@ env:
   MSAN_OPTIONS: "poison_in_dtor=1"
   LSAN_DIR: lsan
   LSAN_FILE: lsan.supp
+  CTEST: ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir
 
 jobs:
   ##############
