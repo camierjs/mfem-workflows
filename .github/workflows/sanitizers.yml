@@ -462,22 +462,6 @@ jobs:
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      - name: Restore MFEM # 🔥 AFTER checkout ?!
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        id: mfem-cache
-        uses: actions/cache@v4
-        with:
-          path: mfem/build # mfem-install
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: LS mfem/build
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: ls -l
-      - name: Patch Ninja
-        if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: sed -i -e 's/CXX_SHARED_LIBRARY_LINKER__mfem_RelWithDebInfo.*/CUSTOM_COMMAND/' build.ninja
       # - name: Patch config.mk
       #   if: steps.check-seq-cache.outputs.cache-hit != 'true'
       #   run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
@@ -505,6 +489,22 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore MFEM
+        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        id: mfem-cache
+        uses: actions/cache@v4
+        with:
+          path: mfem/build # mfem-install
+          fail-on-cache-miss: true
+          key: cache-mfem-seq-${{matrix.sanitizer}}
+      - name: LS mfem/build
+        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ls -l
+      - name: Patch Ninja
+        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_SHARED_LIBRARY_LINKER__mfem_RelWithDebInfo.*/CUSTOM_COMMAND/' build.ninja
       - name: MFEM Check
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
