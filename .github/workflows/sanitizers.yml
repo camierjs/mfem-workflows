@@ -988,7 +988,7 @@ jobs:
         id: unit-par-cache
         uses: actions/cache@v4
         with:
-          path: mfem-install
+          path: mfem/tests/unit/punit_tests
           key: cache-unit-par-${{matrix.sanitizer}}
       - name: Setup
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
@@ -1092,7 +1092,7 @@ jobs:
         id: unit-seq-cache
         uses: actions/cache@v4
         with:
-          path: mfem-install
+          path: mfem/tests/unit/unit_tests
           key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
         if: steps.unit-seq-cache.outputs.cache-hit != 'true'
