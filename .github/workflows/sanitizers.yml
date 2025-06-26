@@ -226,7 +226,7 @@ jobs:
     steps:
       - name: Cache
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v4
         with:
           path: mfem/build
           key: cache-mfem-seq-${{matrix.sanitizer}}
@@ -328,7 +328,7 @@ jobs:
     steps:
       - name: Cache
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v4
         with:
           path: mfem/build
           key: cache-mfem-par-${{matrix.sanitizer}}
