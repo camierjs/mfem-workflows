@@ -410,7 +410,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-mfem-par-${{matrix.sanitizer}}
-          path: ${GITHUB_WORKSPACE}/mfem-install
+          path: mfem-install
           if-no-files-found: error
           retention-days: 1
           overwrite: false
