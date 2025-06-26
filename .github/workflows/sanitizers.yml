@@ -470,6 +470,10 @@ jobs:
           path: mfem/build # mfem-install
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
+      - name: LS mfem/build
+        if: steps.check-seq-cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ls -l
       - name: Patch Ninja
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
@@ -503,8 +507,9 @@ jobs:
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: MFEM Check
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/examples
+        working-directory: mfem/build
         run: ninja -v check
+        # working-directory: mfem/examples
         # run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
       # - name: Upload
       #   if: steps.check-seq-cache.outputs.cache-hit != 'true'
