@@ -42,15 +42,16 @@ env:
   CTEST: ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir
 
 jobs:
-  ##############
-  man:
-    runs-on: ubuntu-latest
-    name: man
-    steps:
-      - name: sed
-        run: man sed
-      - name: split
-        run: man split
+  #######################
+  # Man pages: sed, split
+  # man:
+  #   runs-on: ubuntu-latest
+  #   name: man
+  #   steps:
+  #     - name: sed
+  #       run: man sed
+  #     - name: split
+  #       run: man split
 
   #############
   # Build HYPRE
@@ -1116,8 +1117,8 @@ jobs:
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
-      # - name: Set Permissions
-      #   run: chmod 755 mfem/tests/unit/unit_tests
+      - name: Set Permissions
+        run: find mfem/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
         working-directory: mfem/build/tests/unit
         run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > list-tags
@@ -1126,7 +1127,7 @@ jobs:
         run: cat list-tags
       - name: Split Tests
         working-directory: mfem/build/tests/unit
-        run: split --verbose -n l/8 -d -a 1 list-tags list-tags-
+        run: split --verbose -n l/4 -d -a 1 list-tags list-tags-
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
@@ -1148,7 +1149,7 @@ jobs:
       fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-        tag: [0, 1, 2, 3, 4, 5, 6, 7]
+        tag: [0, 1, 2, 3]
     name: test-seq-unit-${{matrix.sanitizer}}-${{matrix.tag}}
     steps:
       - name: Setup
@@ -1182,8 +1183,8 @@ jobs:
         with:
           name: upload-unit-seq-split-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
-      # - name: Set Permissions
-      #   run: chmod 755 mfem/tests/unit/unit_tests
+      - name: Set Permissions
+        run: find mfem/tests/unit -type f -exec chmod 755 {} \;
       - name: ls split files
         working-directory: mfem/build/tests/unit
         run: ls -l
