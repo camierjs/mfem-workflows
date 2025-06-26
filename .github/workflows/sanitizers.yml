@@ -1,4 +1,6 @@
+# https://github.com/actions/cache/blob/main/restore/README.md
 ---
+
 name: "Sanitizers"
 
 permissions:
@@ -224,7 +226,7 @@ jobs:
         id: cache-mfem
         uses: actions/cache@v4
         with:
-          path: mfem/build # mfem-install
+          path: mfem/build
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Env
         run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
@@ -270,8 +272,8 @@ jobs:
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-mfem@v2.5
         env:
-          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} # ${{env.MPI_INC}}
-          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} # ${{env.MPI_LIB}}
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}  # ${{env.MPI_INC}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}  # ${{env.MPI_LIB}}
         with:
           mpi: seq
           mfem-dir: mfem
@@ -297,7 +299,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-mfem-seq-${{matrix.sanitizer}}
-          path: mfem/build # mfem-install
+          path: mfem/build
           if-no-files-found: error
           retention-days: 1
           overwrite: false
@@ -954,7 +956,7 @@ jobs:
   #     - name: Makefile
   #       working-directory: mfem/miniapps
   #       # if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
-  #       # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); 
+  #       # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc);
   #       # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
   #       run: |
   #         cat << EOF > makefile
@@ -1071,7 +1073,7 @@ jobs:
   #         overwrite: false
 
   # ########################
-  # # Unit tests MFEM Serial 
+  # # Unit tests MFEM Serial
   # # Cache:   cache-unit-seq-${{matrix.sanitizer}}
   # # Upload: upload-unit-seq-${{matrix.sanitizer}}
   # test-seq-unit:
@@ -1273,3 +1275,4 @@ jobs:
   #     - name: Run Unit Tests ${{matrix.tag}}
   #       working-directory: mfem/tests/unit
   #       run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}} --min-duration 1
+  
