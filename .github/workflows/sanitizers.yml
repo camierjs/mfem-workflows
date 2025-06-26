@@ -448,9 +448,9 @@ jobs:
     steps:
       - name: Cache
         id: cache
-        uses: actions/cache/restore@v4  # don't update the cache
+        uses: actions/cache@v4  # don't update the cache
         with:
-          path: mfem/build
+          path: mfem/build/examples/ex1
           key: cache-check-seq-${{matrix.sanitizer}}
       - name: Setup
         run: |
@@ -509,9 +509,9 @@ jobs:
     steps:
       - name: Cache
         id: cache
-        uses: actions/cache/restore@v4  # don't update the cache
+        uses: actions/cache@v4
         with:
-          path: mfem/build
+          path: mfem/build/examples/ex1p
           key: cache-check-par-${{matrix.sanitizer}}
       - name: Setup
         run: |
