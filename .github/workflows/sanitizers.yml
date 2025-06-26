@@ -224,7 +224,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         run: |
@@ -324,7 +324,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         run: |
@@ -451,7 +451,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-seq-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         run: |
@@ -465,7 +465,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -545,7 +545,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-par-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.check-par-cache.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
@@ -558,7 +558,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
         if: steps.check-par-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -640,7 +640,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-seq-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.cache-seq-examples.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
@@ -650,7 +650,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
         if: steps.cache-seq-examples.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -723,7 +723,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-par-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.examples-par-cache.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
@@ -736,7 +736,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
         if: steps.examples-par-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -822,7 +822,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-seq-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
@@ -832,7 +832,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
         if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -905,7 +905,7 @@ jobs:
         with:
           path: mfem-install
           fail-on-cache-miss: true
-          key: cache-build-par-mfem-${{matrix.sanitizer}}
+          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
         run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
@@ -918,7 +918,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
