@@ -558,7 +558,7 @@ jobs:
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.check-par-cache.outputs.cache-hit != 'true'
-        run: sed -c '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         if: steps.check-par-cache.outputs.cache-hit != 'true'
         run: cat mfem-install/share/mfem/config.mk
