@@ -1,6 +1,12 @@
+---
 # GitHub Actions:
 #  - cache:   https://github.com/marketplace/actions/cache
 #  - restore: https://github.com/actions/cache/blob/main/restore/README.md
+ninja:
+  - name: &ninja-patch
+    if: steps.cache.outputs.cache-hit != 'true'
+    working-directory: mfem/build
+    run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
 ---
 
 name: "Sanitizers"
@@ -247,7 +253,6 @@ jobs:
           echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
           echo "LLVM_INC=${LLVM_DIR}/include/c++/v1" >> $GITHUB_ENV
           echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
-          echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
       - name: Setup (LLVM)
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -263,7 +268,6 @@ jobs:
           echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
           echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
           echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
-          echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
@@ -355,7 +359,6 @@ jobs:
           echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo "CTEST=ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir" >> $GITHUB_ENV
       - name: Setup (LLVM)
         if: steps.cache-outputs.cache-hit != 'true'
         run: |
@@ -376,7 +379,6 @@ jobs:
           echo "[MPI] Version: $(mpicxx --showme:version)"
           echo "[MPI] Compile: $(mpicxx --showme:compile)"
           echo "[MPI] Link: $(mpicxx --showme:link)"
-          echo "[CTEST] ${{env.CTEST}}"
       - name: Checkout
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
@@ -429,7 +431,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-mfem-par-${{matrix.sanitizer}}
-          path: mfem/build 
+          path: mfem/build
           if-no-files-found: error
           retention-days: 1
           overwrite: false
@@ -584,7 +586,7 @@ jobs:
         id: mfem-cache
         uses: actions/cache/restore@v4
         with:
-          path: mfem/build 
+          path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch Ninja
@@ -622,12 +624,6 @@ jobs:
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Setup (LLVM_LIB)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-      - name: Setup (LLVM_LDFLAGS)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
@@ -656,10 +652,11 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
-        if: steps.cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: *ninja-patch
+      # - name: Patch Ninja
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   working-directory: mfem/build
+      #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Examples
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
@@ -668,15 +665,15 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
-      - name: Upload
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: upload-examples-seq-${{matrix.sanitizer}}
-          path: mfem/examples/ex1
-          if-no-files-found: error
-          retention-days: 1
-          overwrite: false
+      # - name: Upload
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: upload-examples-seq-${{matrix.sanitizer}}
+      #     path: mfem/examples/ex1
+      #     if-no-files-found: error
+      #     retention-days: 1
+      #     overwrite: false
 
   ########################
   # Examples MFEM Parallel
@@ -704,14 +701,7 @@ jobs:
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Setup (LLVM_LIB)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-      - name: Setup (LLVM_LDFLAGS)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
@@ -770,15 +760,15 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
-      - name: Upload
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: upload-examples-par-${{matrix.sanitizer}}
-          path: mfem/examples/ex1p
-          if-no-files-found: error
-          retention-days: 1
-          overwrite: false
+      # - name: Upload
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: upload-examples-par-${{matrix.sanitizer}}
+      #     path: mfem/examples/ex1p
+      #     if-no-files-found: error
+      #     retention-days: 1
+      #     overwrite: false
 
   # ######################
   # # Miniapps MFEM Serial
