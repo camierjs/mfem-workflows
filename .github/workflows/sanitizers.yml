@@ -1203,9 +1203,15 @@ jobs:
       - name: Split Unit Tests
         working-directory: mfem/tests/unit
         run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > list-tags
+      - name: Cat list-tags
+        working-directory: mfem/tests/unit
+        run: cat list-tags
       - name: Split Tests
         working-directory: mfem/tests/unit
-        run: split -n l/4 -d -a 1 list-tags
+        run: split --verbose -n l/4 -d -a 1 list-tags
+      - name: ls Split Files
+        working-directory: mfem/tests/unit
+        run: ls -l
       - name: Run Unit Tests
         working-directory: mfem/tests/unit
         run: |
