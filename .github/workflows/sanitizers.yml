@@ -1055,7 +1055,7 @@ jobs:
           # Target to run tests in all miniapp directories
           test-miniapps:
           <tab>@for dir in \$(MINIAPP_TEST_DIRS); do \\
-          <tab>    if [ -f \$\$dir/Makefile ] || [ -f \$\$dir/makefile ]; then \\
+          <tab>    if [ -f \$\$dir/makefile ]; then \\
           <tab>        echo "Running tests in \$\$dir ..."; \\
           <tab>        cd \$\$dir && MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all && \\
           <tab>        MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests failed in \$\$dir"; exit 1; }; \\
@@ -1068,6 +1068,9 @@ jobs:
       - name: Sed Tabs
         working-directory: mfem/miniapps
         run: sed -e 's/<tab>/\t/g' makefile
+      - name: Cat makefile
+        working-directory: mfem/miniapps
+        run: cat makefile
       - name: Test Miniapps
         # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         working-directory: mfem/miniapps
