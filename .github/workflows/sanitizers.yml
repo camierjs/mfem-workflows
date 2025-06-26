@@ -1051,7 +1051,11 @@ jobs:
             for dir in $(MINIAPP_TEST_DIRS); do \
               echo "Running tests in $${dir} ..."; \
           EOF
-          make
+      - name: Test Miniapps
+        # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        working-directory: mfem/miniapps
+        run: |
+          make -f makefile test-miniapps || { echo "Tests in $${dir} failed!"; exit 1; }
 
   ########################
   # Miniapps MFEM Parallel
