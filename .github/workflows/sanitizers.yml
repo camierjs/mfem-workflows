@@ -1,6 +1,7 @@
 # GitHub Actions:
 #  - cache:   https://github.com/marketplace/actions/cache
 #  - restore: https://github.com/actions/cache/blob/main/restore/README.md
+#  - upload:  https://github.com/marketplace/actions/upload-a-build-artifact
 ---
 
 name: "Sanitizers"
@@ -577,7 +578,6 @@ jobs:
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
         if: steps.cache.outputs.cache-hit != 'true'
-        id: mfem-cache
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
@@ -831,7 +831,10 @@ jobs:
       - name: Setup
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: steps.cache.outputs.cache-hit != 'true'
@@ -927,7 +930,6 @@ jobs:
   #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
   #     - name: Restore MFEM
   #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       id: mfem-cache
   #       uses: actions/cache@v4
   #       with:
   #         path: mfem-install
@@ -995,85 +997,78 @@ jobs:
   #         retention-days: 1
   #         overwrite: false
 
-  # ########################
-  # # Unit tests MFEM Serial
-  # # Cache:   cache-unit-seq-${{matrix.sanitizer}}
-  # # Upload: upload-unit-seq-${{matrix.sanitizer}}
-  # test-seq-unit:
-  #   needs: [test-seq-check]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, msan, ubsan]
-  #   name: test-seq-unit-${{matrix.sanitizer}}
-  #   steps:
-  #     - name: Cache
-  #       id: unit-seq-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem/tests/unit/unit_tests
-  #         key: cache-unit-seq-${{matrix.sanitizer}}
-  #     - name: Setup
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-  #         echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LIB)
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LDFLAGS)
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Restore MFEM
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       id: mfem-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem-install
-  #         fail-on-cache-miss: true
-  #         key: cache-mfem-seq-${{matrix.sanitizer}}
-  #     - name: Patch config.mk
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
-  #     - name: Restore LLVM libcxx
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Restore LSAN file
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LSAN_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-lsan-suppression-file
-  #     - name: Checkout
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     - name: Build Unit Tests
-  #       if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #       working-directory: mfem/tests/unit
-  #       run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
-  #     # - name: Test Unit Tests
-  #     #   # if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-  #     #   working-directory: mfem/tests/unit
-  #     #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
-  #     # https://github.com/marketplace/actions/upload-a-build-artifact
-  #     - name: Upload
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: upload-unit-seq-${{matrix.sanitizer}}
-  #         path: mfem/tests/unit/unit_tests
-  #         if-no-files-found: error
-  #         retention-days: 1
-  #         overwrite: false
+  ########################
+  # Unit tests MFEM Serial
+  # Cache:   cache-unit-seq-${{matrix.sanitizer}}
+  # Upload: upload-unit-seq-${{matrix.sanitizer}}
+  test-seq-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem, test-seq-check]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: test-seq-unit-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: mfem/tests/unit/unit_tests
+          key: cache-unit-seq-${{matrix.sanitizer}}
+      - name: Setup
+        if: steps.ache.outputs.cache-hit != 'true'
+        run: |
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore MFEM
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build
+          fail-on-cache-miss: true
+          key: cache-mfem-seq-${{matrix.sanitizer}}
+      - name: Patch Ninja
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: Build Unit Tests
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ninja -v tests/unit/all
+      - name: Test Unit Tests
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit
+      # - name: Upload
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: upload-unit-seq-${{matrix.sanitizer}}
+      #     path: mfem/tests/unit/unit_tests
+      #     if-no-files-found: error
+      #     retention-days: 1
+      #     overwrite: false
 
   # ############################
   # # Unit tests MFEM Serial RUN
