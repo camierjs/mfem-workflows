@@ -256,12 +256,12 @@ jobs:
           echo "LLVM_INC=${LLVM_DIR}/include/c++/v1" >> $GITHUB_ENV
           echo "LLVM_LIB=${LLVM_DIR}/lib" >> $GITHUB_ENV
       - name: Setup (LLVM)
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
           echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "[CC] ${{env.CC}}"
           echo "[CXX] ${{env.CXX}}"
@@ -271,14 +271,14 @@ jobs:
           echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
           echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Build
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
@@ -301,7 +301,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
       - name: Delete object files
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: find . -type f -name '*.o' -delete
       - name: Upload
@@ -343,14 +343,14 @@ jobs:
       - name: Env
         run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
@@ -363,12 +363,12 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
       - name: Setup (LLVM)
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
           echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Echo
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "[CC] ${{env.CC}}"
           echo "[CXX] ${{env.CXX}}"
@@ -383,28 +383,28 @@ jobs:
           echo "[MPI] Compile: $(mpicxx --showme:compile)"
           echo "[MPI] Link: $(mpicxx --showme:link)"
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore Hypre
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Build
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
@@ -427,7 +427,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
       - name: Delete object files
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: find . -type f -name '*.o' -delete
       - name: Upload
@@ -460,44 +460,44 @@ jobs:
           path: mfem/build/examples/ex1
           key: cache-check-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: MFEM Check
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v check
 
@@ -522,7 +522,7 @@ jobs:
           path: mfem/build/examples/ex1p
           key: cache-check-par-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
@@ -534,7 +534,7 @@ jobs:
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Echo
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "[CC] ${{env.CC}}"
           echo "[CXX] ${{env.CXX}}"
@@ -543,62 +543,62 @@ jobs:
           echo "[METIS_DIR] ${{env.METIS_DIR}}"
           echo "[MPI] MPI_LIB: ${{env.MPI_LIB}}"
       - name: Setup (LLVM_LIB)
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
       - name: Setup (LLVM_LDFLAGS)
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Restore LSAN
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Hypre/Metis links
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: MFEM Check
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v check
 
@@ -625,48 +625,48 @@ jobs:
           path: mfem/build/examples/ex1
           key: cache-examples-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Examples
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v examples
       - name: Test Examples
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
 
@@ -691,7 +691,7 @@ jobs:
           path: mfem/build/examples/ex1p
           key: cache-examples-par-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
@@ -699,60 +699,60 @@ jobs:
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Restore LSAN
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Hypre/Metis links
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Examples
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v examples
       - name: Test Examples
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
 
@@ -777,48 +777,48 @@ jobs:
           path: mfem/build/miniapps/meshing/minimal-surface
           key: cache-miniapps-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Miniapps
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v miniapps
       - name: Test Miniapps
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} miniapps
 
@@ -843,7 +843,7 @@ jobs:
           path: mfem/build/miniapps/meshing/pminimal-surface
           key: cache-miniapps-par-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
@@ -851,60 +851,60 @@ jobs:
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Restore LSAN file
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Hypre/Metis links
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Miniapps
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v miniapps
       - name: Test Miniapps
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} miniapps
 
@@ -929,49 +929,49 @@ jobs:
           path: mfem/build/tests/unit
           key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore LSAN file
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Unit Tests
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
         # 🔥 Should run all but unit_tests here
       - name: Delete object files
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
         run: find . -type f -name '*.o' -delete
       - name: Upload
@@ -1079,7 +1079,7 @@ jobs:
           path: mfem/build/tests/unit
           key: cache-unit-par-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           sudo apt-get install openmpi-bin libopenmpi-dev
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
@@ -1087,61 +1087,61 @@ jobs:
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Restore Hypre
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Restore LSAN
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
       - name: Hypre/Metis links
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
       - name: Restore MFEM
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch Ninja
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Build Unit Tests
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
         # 🔥 Should run all but punit_tests here
       - name: Delete object files
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
         run: find . -type f -name '*.o' -delete
       - name: Upload
