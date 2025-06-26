@@ -1241,7 +1241,7 @@ jobs:
       matrix:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3, 4, 5, 6, 7]
-    name: test-seq-unit-run-${{matrix.sanitizer}}-${{matrix.tag}}
+    name: test-seq-unit-${{matrix.sanitizer}}-${{matrix.tag}}
     steps:
       - name: Setup
         run: |
@@ -1280,6 +1280,8 @@ jobs:
       - name: ls Split Files
         working-directory: mfem/tests/unit
         run: ls -l
+      # -d, --durations <yes|no> show test durations
+      # -D, --min-duration <seconds> show test durations for tests
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/tests/unit
-        run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}}
+        run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}} --durations yes
