@@ -217,6 +217,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
           key: llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-mfem.outputs.cache-hit != 'true'
@@ -314,7 +315,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key: Linux-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          fail-on-cache-miss: true
+          key: llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         run: |
@@ -355,12 +357,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
       - name: Restore Metis
         if: steps.cache-mfem.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Checkout
         if: steps.cache-mfem.outputs.cache-hit != 'true'
