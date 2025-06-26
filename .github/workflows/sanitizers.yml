@@ -1240,7 +1240,7 @@ jobs:
       matrix:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
-    name: test-seq-unit-split-run-${{matrix.sanitizer}}
+    name: test-seq-unit-run-${{matrix.sanitizer}}-${{matrix.tag}}
     steps:
       - name: Setup
         run: |
