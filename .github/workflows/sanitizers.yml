@@ -1126,7 +1126,7 @@ jobs:
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Copy Data
         working-directory: mfem/build
-        run: ninja copy_data
+        run: ninja copy_data copy_miniapps_nurbs_data
       - name: Download
         uses: actions/download-artifact@v4
         with:
