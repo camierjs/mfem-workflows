@@ -1146,7 +1146,6 @@ jobs:
       #   working-directory: mfem/tests/unit
       #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
       - name: Upload
-        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
