@@ -1209,7 +1209,7 @@ jobs:
         run: cat list-tags
       - name: Split Tests
         working-directory: mfem/tests/unit
-        run: split --verbose -n l/4 -d -a 1 list-tags list-tags-
+        run: split --verbose -n l/8 -d -a 1 list-tags list-tags-
       - name: ls Split Files
         working-directory: mfem/tests/unit
         run: ls -l
@@ -1240,7 +1240,7 @@ jobs:
       fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-        tag: [0, 1, 2, 3]
+        tag: [0, 1, 2, 3, 4, 5, 6, 7]
     name: test-seq-unit-run-${{matrix.sanitizer}}-${{matrix.tag}}
     steps:
       - name: Setup
