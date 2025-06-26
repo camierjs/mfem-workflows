@@ -1197,12 +1197,13 @@ jobs:
           name: upload-unit-seq-${{matrix.sanitizer}}
       - name: ls
         run: |
+          ls -l
           ls -l mfem
           ls -l mfem/tests
           ls -l mfem/tests/unit
           ls -l mfem/tests/unit/unit_tests
       - name: Set Permissions
-        run: chmod -R u+rwx mfem/tests/unit/unit_tests
+        run: chmod 755 mfem/tests/unit/unit_tests
       - name: Split Unit Tests
         working-directory: mfem/tests/unit
         run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > tests
