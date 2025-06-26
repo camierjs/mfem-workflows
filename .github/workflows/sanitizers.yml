@@ -456,7 +456,7 @@ jobs:
       - name: Patch config.mk
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         run: |
-          sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+          sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         if: steps.check-seq-cache.outputs.cache-hit != 'true'
         run: cat mfem-install/share/mfem/config.mk
@@ -550,7 +550,7 @@ jobs:
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.check-par-cache.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         if: steps.check-par-cache.outputs.cache-hit != 'true'
         run: cat mfem-install/share/mfem/config.mk
@@ -648,7 +648,7 @@ jobs:
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.cache-seq-examples.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         if: steps.cache-seq-examples.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -732,7 +732,7 @@ jobs:
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.examples-par-cache.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         if: steps.examples-par-cache.outputs.cache-hit != 'true'
         run: cat mfem-install/share/mfem/config.mk
@@ -832,7 +832,7 @@ jobs:
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.unit-seq-cache.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -916,7 +916,7 @@ jobs:
           key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Patch config.mk
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
       - name: Cat config.mk
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
         run: cat mfem-install/share/mfem/config.mk
@@ -1016,7 +1016,7 @@ jobs:
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Patch config.mk
         # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
-        run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
+        run: sed -i "" '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS)/' mfem-install/share/mfem/config.mk
       - name: Restore LLVM libcxx
         # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         uses: actions/cache@v4
@@ -1041,21 +1041,30 @@ jobs:
       - name: Makefile
         working-directory: mfem/miniapps
         # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
-        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); \
-        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
         run: |
-          cat << EOF > makefile
-          MINIAPP_DIRS := $(shell find . -type d -maxdepth 1 -not -path .)
-          MINIAPP_TEST_DIRS := $(filter-out %/common,$(MINIAPP_DIRS))
+          cat <<- EOF > makefile
+          MINIAPP_DIRS := \$(shell find . -type d -maxdepth 1 -not -path . -not -path './.*')
+          MINIAPP_TEST_DIRS := \$(filter-out %/common,\$(MINIAPP_DIRS))
+          # Target to run tests in all miniapp directories
           test-miniapps:
-            for dir in $(MINIAPP_TEST_DIRS); do \
-              echo "Running tests in $${dir} ..."; \
+          <tab>@for dir in \$(MINIAPP_TEST_DIRS); do \\
+          <tab>    if [ -f \$\$dir/Makefile ] || [ -f \$\$dir/makefile ]; then \\
+          <tab>        echo "Running tests in \$\$dir ..."; \\
+          <tab>        cd \$\$dir && MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all && \\
+          <tab>        MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests failed in \$\$dir"; exit 1; }; \\
+          <tab>        cd - >/dev/null; \\
+          <tab>    else \\
+          <tab>        echo "Skipping \$\$dir: No Makefile found"; \\
+          <tab>    fi; \\
+          <tab>done
           EOF
+      - name: Sed Tabs
+        working-directory: mfem/miniapps
+        run: sed -i "" 's/<tab>/\t/g' makefile
       - name: Test Miniapps
         # if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
         working-directory: mfem/miniapps
-        run: |
-          make -f makefile test-miniapps || { echo "Tests in $${dir} failed!"; exit 1; }
+        run: make || { echo "Tests in $${dir} failed!"; exit 1; }
 
   ########################
   # Miniapps MFEM Parallel
