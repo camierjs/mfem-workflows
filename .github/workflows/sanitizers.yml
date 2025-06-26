@@ -407,6 +407,7 @@ jobs:
         working-directory: mfem/build
         run: ninja install
       - name: Upload
+        if: steps.cache-mfem.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-mfem-par-${{matrix.sanitizer}}
@@ -485,6 +486,7 @@ jobs:
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1-test-seq
       - name: Upload
+        if: steps.check-seq-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-check-seq-${{matrix.sanitizer}}
@@ -595,6 +597,7 @@ jobs:
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make ex1p-test-par
       - name: Upload
+        if: steps.check-par-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-check-par-${{matrix.sanitizer}}
@@ -674,6 +677,7 @@ jobs:
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
       - name: Upload
+        if: steps.cache-seq-examples.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-examples-seq-${{matrix.sanitizer}}
@@ -777,6 +781,7 @@ jobs:
         working-directory: mfem/examples
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
       - name: Upload
+        if: steps.examples-par-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-examples-par-${{matrix.sanitizer}}
@@ -856,6 +861,7 @@ jobs:
         working-directory: mfem/tests/unit
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-ser
       - name: Upload
+        if: steps.unit-seq-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
@@ -959,6 +965,7 @@ jobs:
         working-directory: mfem/tests/unit
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
       - name: Upload
+        if: steps.unit-par-cache.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-par-${{matrix.sanitizer}}
@@ -1032,6 +1039,8 @@ jobs:
       - name: Makefile
         working-directory: mfem/miniapps
         if: steps.cache-seq-miniapps.outputs.cache-hit != 'true'
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); \
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
         run: |
           cat << EOF > makefile
           MINIAPP_DIRS := $(shell find . -type d -maxdepth 1 -not -path .)
@@ -1039,8 +1048,6 @@ jobs:
           test-miniapps:
             for dir in $(MINIAPP_TEST_DIRS); do \
               echo "Running tests in $${dir} ..."; \
-              MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); \
-              MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
           EOF
           make
 
@@ -1109,6 +1116,8 @@ jobs:
       - name: Makefile
         working-directory: mfem/miniapps
         if: steps.cache-par-miniapps.outputs.cache-hit != 'true'
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); 
+        # MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
         run: |
           cat << EOF > makefile
           MINIAPP_DIRS := $(shell find . -type d -maxdepth 1 -not -path .)
@@ -1116,8 +1125,6 @@ jobs:
           test-miniapps:
             for dir in $(MINIAPP_TEST_DIRS); do \
               echo "Running tests in $${dir} ..."; \
-              MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc); \
-              MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test || { echo "Tests in $${dir} failed!"; exit 1; };
           EOF
           make
 
