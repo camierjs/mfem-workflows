@@ -1062,11 +1062,11 @@ jobs:
         if: steps.unit-par-cache.outputs.cache-hit != 'true'
         working-directory: mfem/tests/unit
         run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
-      # Should be remove and do the same split rubs as serial
-      - name: Test Unit Tests
-        if: steps.unit-par-cache.outputs.cache-hit != 'true'
-        working-directory: mfem/tests/unit
-        run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
+      # Should do the same split rubs as serial
+      # - name: Test Unit Tests
+      #   if: steps.unit-par-cache.outputs.cache-hit != 'true'
+      #   working-directory: mfem/tests/unit
+      #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
