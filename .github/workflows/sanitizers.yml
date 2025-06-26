@@ -239,16 +239,17 @@ jobs:
           path: mfem/build
           key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Env
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
           echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
