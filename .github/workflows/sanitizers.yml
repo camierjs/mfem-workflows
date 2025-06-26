@@ -1014,7 +1014,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mfem/tests/unit/unit_tests
+          path: mfem/build/tests/unit
           key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
         if: steps.ache.outputs.cache-hit != 'true'
@@ -1057,139 +1057,139 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      - name: Test Unit Tests
+      - name: Delete object files
         if: steps.cache.outputs.cache-hit != 'true'
-        working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit
-      # - name: Upload
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: upload-unit-seq-${{matrix.sanitizer}}
-      #     path: mfem/tests/unit/unit_tests
-      #     if-no-files-found: error
-      #     retention-days: 1
-      #     overwrite: false
+        working-directory: mfem/build/tests/unit
+        run: find . -type f -name '*.o' -delete
+      # - name: Test Unit Tests
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   working-directory: mfem/build
+      #   run: ${{env.CTEST}} tests/unit
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+
+  # ##############################
+  # # Unit tests MFEM Serial SPLIT
+  test-seq-unit-split:
+    needs: [test-seq-unit]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: test-seq-unit-split-${{matrix.sanitizer}}
+    steps:
+      - name: Setup
+        run: |
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Setup (LLVM_LIB)
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+      # - name: Set Permissions
+      #   run: chmod 755 mfem/tests/unit/unit_tests
+      - name: Split Unit Tests
+        working-directory: mfem/build/tests/unit
+        run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > list-tags
+      - name: Cat list-tags
+        working-directory: mfem/build/tests/unit
+        run: cat list-tags
+      - name: Split Tests
+        working-directory: mfem/build/tests/unit
+        run: split --verbose -n l/8 -d -a 1 list-tags list-tags-
+      - name: ls Split Files
+        working-directory: mfem/build/tests/unit
+        run: ls -l
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-seq-split-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
 
   # ############################
   # # Unit tests MFEM Serial RUN
-  # test-seq-unit-split:
-  #   needs: [test-seq-unit]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, msan, ubsan]
-  #   name: test-seq-unit-split-${{matrix.sanitizer}}
-  #   steps:
-  #     - name: Setup
-  #       run: |
-  #         echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-  #         echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LIB)
-  #       run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LDFLAGS)
-  #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Restore LLVM libcxx
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Restore LSAN file
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LSAN_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-lsan-suppression-file
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     # https://github.com/actions/download-artifact
-  #     - name: Download
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: upload-unit-seq-${{matrix.sanitizer}}
-  #         path: mfem/tests/unit
-  #     - name: Set Permissions
-  #       run: chmod 755 mfem/tests/unit/unit_tests
-  #     - name: Split Unit Tests
-  #       working-directory: mfem/tests/unit
-  #       run: ./unit_tests --filenames-as-tags --list-tags | grep '\[#' | cut -d '[' -f 2 | cut -d']' -f1 > list-tags
-  #     - name: Cat list-tags
-  #       working-directory: mfem/tests/unit
-  #       run: cat list-tags
-  #     - name: Split Tests
-  #       working-directory: mfem/tests/unit
-  #       run: split --verbose -n l/8 -d -a 1 list-tags list-tags-
-  #     - name: ls Split Files
-  #       working-directory: mfem/tests/unit
-  #       run: ls -l
-  #     - name: Upload
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: upload-unit-seq-split-${{matrix.sanitizer}}
-  #         path: |
-  #           mfem/tests/unit/unit_tests
-  #           mfem/tests/unit/list-tags-*
-  #         if-no-files-found: error
-  #         retention-days: 1
-  #         overwrite: false
-
-  # ############################
-  # # Unit tests MFEM Serial RUN
-  # test-seq-unit-split-run:
-  #   needs: [test-seq-unit-split]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, msan, ubsan]
-  #       tag: [0, 1, 2, 3, 4, 5, 6, 7]
-  #   name: test-seq-unit-${{matrix.sanitizer}}-${{matrix.tag}}
-  #   steps:
-  #     - name: Setup
-  #       run: |
-  #         echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-  #         echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LIB)
-  #       run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LDFLAGS)
-  #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Restore LLVM libcxx
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Restore LSAN file
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LSAN_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-lsan-suppression-file
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     # https://github.com/actions/download-artifact
-  #     - name: Download
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: upload-unit-seq-split-${{matrix.sanitizer}}
-  #         path: mfem/tests/unit
-  #     - name: Set Permissions
-  #       run: chmod 755 mfem/tests/unit/unit_tests
-  #     - name: ls split files
-  #       working-directory: mfem/tests/unit
-  #       run: ls -l
-  #     - name: Cat list-tags-${{matrix.tag}}
-  #       working-directory: mfem/tests/unit
-  #       run: cat ./list-tags-${{matrix.tag}}
-  #     - name: Run Unit Tests ${{matrix.tag}}
-  #       working-directory: mfem/tests/unit
-  #       run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}} --min-duration 1
+  test-seq-unit-split-run:
+    needs: [test-seq-unit-split]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+        tag: [0, 1, 2, 3, 4, 5, 6, 7]
+    name: test-seq-unit-${{matrix.sanitizer}}-${{matrix.tag}}
+    steps:
+      - name: Setup
+        run: |
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Setup (LLVM_LIB)
+        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+      - name: Setup (LLVM_LDFLAGS)
+        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-seq-split-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+      # - name: Set Permissions
+      #   run: chmod 755 mfem/tests/unit/unit_tests
+      - name: ls split files
+        working-directory: mfem/build/tests/unit
+        run: ls -l
+      - name: Cat list-tags-${{matrix.tag}}
+        working-directory: mfem/build/tests/unit
+        run: cat ./list-tags-${{matrix.tag}}
+      - name: Run Unit Tests ${{matrix.tag}}
+        working-directory: mfem/build/tests/unit
+        run: ./unit_tests --filenames-as-tags --input-file ./list-tags-${{matrix.tag}} --min-duration 1
