@@ -895,109 +895,6 @@ jobs:
         working-directory: mfem/build
         run: ${{env.CTEST}} miniapps
 
-  # ##########################
-  # # Unit tests MFEM Parallel
-  # # Cache:   cache-unit-par-${{matrix.sanitizer}}
-  # # Upload: upload-unit-par-${{matrix.sanitizer}}
-  # test-par-unit:
-  #   needs: [test-par-check]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       sanitizer: [asan, ubsan]
-  #   name: test-par-unit-${{matrix.sanitizer}}
-  #   steps:
-  #     - name: Cache
-  #       id: unit-par-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem/tests/unit/punit_tests
-  #         key: cache-unit-par-${{matrix.sanitizer}}
-  #     - name: Setup
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         sudo apt-get install openmpi-bin libopenmpi-dev
-  #         echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-  #         echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-  #         echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-  #         echo "MPI_LIB=$(mpicxx --showme:link)" >> $GITHUB_ENV
-  #         echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LIB)
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-  #     - name: Setup (LLVM_LDFLAGS)
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-  #     - name: Restore MFEM
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: mfem-install
-  #         fail-on-cache-miss: true
-  #         key: cache-mfem-par-${{matrix.sanitizer}}
-  #     - name: Patch config.mk
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: sed -i -e '/^MFEM_LIBS/ s/$/ $(LLVM_LDFLAGS) $(MPI_LIB)/' mfem-install/share/mfem/config.mk
-  #     - name: Cat config.mk
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: cat mfem-install/share/mfem/config.mk
-  #     - name: Restore LLVM libcxx
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LLVM_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  #     - name: Restore Hypre
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.HYPRE_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-  #     - name: Restore Metis
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.METIS_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-  #     - name: Restore LSAN
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{env.LSAN_DIR}}
-  #         fail-on-cache-miss: true
-  #         key: cache-lsan-suppression-file
-  #     - name: Hypre/Metis links
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-  #     - name: Checkout
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       uses: actions/checkout@v4
-  #       with:
-  #         path: mfem
-  #         ref: ubsan
-  #         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-  #     - name: Build Unit Tests
-  #       if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #       working-directory: mfem/tests/unit
-  #       run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make all -j $(nproc)
-  #     # Should do the same split rubs as serial
-  #     # - name: Test Unit Tests
-  #     #   if: steps.unit-par-cache.outputs.cache-hit != 'true'
-  #     #   working-directory: mfem/tests/unit
-  #     #   run: MFEM_INSTALL_DIR=${GITHUB_WORKSPACE}/mfem-install make test-par
-  #     - name: Upload
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: upload-unit-par-${{matrix.sanitizer}}
-  #         path: mfem/tests/unit/punit_tests
-  #         if-no-files-found: error
-  #         retention-days: 1
-  #         overwrite: false
-
   ########################
   # Unit tests MFEM Serial
   # Cache:   cache-unit-seq-${{matrix.sanitizer}}
@@ -1018,7 +915,7 @@ jobs:
           path: mfem/build/tests/unit
           key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
-        if: steps.ache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
@@ -1062,10 +959,6 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: mfem/build/tests/unit
         run: find . -type f -name '*.o' -delete
-      # - name: Test Unit Tests
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   working-directory: mfem/build
-      #   run: ${{env.CTEST}} tests/unit
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -1077,7 +970,7 @@ jobs:
 
   ####################################
   # Unit tests MFEM Serial SPLIT & RUN
-  test-seq-unit-split:
+  test-seq-unit-run:
     needs: [test-seq-unit]
     runs-on: ubuntu-latest
     strategy:
@@ -1149,3 +1042,187 @@ jobs:
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
         run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
+
+  ##########################
+  # Unit tests MFEM Parallel
+  # Cache:   cache-unit-par-${{matrix.sanitizer}}
+  # Upload: upload-unit-par-${{matrix.sanitizer}}
+  test-par-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem, test-par-check]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+    name: test-par-unit-${{matrix.sanitizer}}
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: mfem/build/tests/unit
+          key: cache-unit-par-${{matrix.sanitizer}}
+      - name: Setup
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore Hypre
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Restore LSAN
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Hypre/Metis links
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      - name: Checkout
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore MFEM
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build
+          fail-on-cache-miss: true
+          key: cache-mfem-par-${{matrix.sanitizer}}
+      - name: Patch Ninja
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: Build Unit Tests
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: ninja -v tests/unit/all
+      - name: Delete object files
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build/tests/unit
+        run: find . -type f -name '*.o' -delete
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-par-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+  
+  ######################################
+  # Unit tests MFEM Parallel SPLIT & RUN
+  test-par-unit-run:
+    needs: [test-par-unit]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, ubsan]
+        tag: [0, 1, 2, 3]
+    name: test-par-unit-${{matrix.sanitizer}}-${{matrix.tag}}
+    steps:
+      - name: Setup
+        run: |
+          sudo apt-get install openmpi-bin libopenmpi-dev
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore Hypre
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Restore LSAN file
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Hypre/Metis links
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore MFEM
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: mfem/build
+          fail-on-cache-miss: true
+          key: cache-mfem-par-${{matrix.sanitizer}}
+      - name: Patch Ninja
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: mfem/build
+        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja copy_data copy_miniapps_nurbs_data
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-par-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit
+      - name: Set Permissions
+        run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
+      - name: Split Unit Tests
+        working-directory: mfem/build/tests/unit
+        run: ./punit_tests --list-test-names-only | tail -n +2 > list-test-names
+      - name: Cat list-test-names
+        working-directory: mfem/build/tests/unit
+        run: cat list-test-names
+      - name: Split list-test-names
+        working-directory: mfem/build/tests/unit
+        run: split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
+      - name: ls Split Files
+        working-directory: mfem/build/tests/unit
+        run: ls -l
+      - name: Run Unit Tests ${{matrix.tag}}
+        working-directory: mfem/build/tests/unit
+        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
