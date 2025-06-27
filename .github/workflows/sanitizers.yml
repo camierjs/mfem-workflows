@@ -295,7 +295,6 @@ jobs:
           config-options: >-
             -GNinja
             -DMPICXX=${{env.CXX}}
-            -DBUILD_SHARED_LIBS=ON
             -DCMAKE_CXX_STANDARD=17
             -DMFEM_USE_MEMALLOC=OFF
             -DCMAKE_BUILD_TYPE=Release
@@ -422,7 +421,6 @@ jobs:
           config-options: >-
             -GNinja
             -DMPICXX=${{env.CXX}}
-            -DBUILD_SHARED_LIBS=ON
             -DCMAKE_CXX_STANDARD=17
             -DMFEM_USE_MEMALLOC=OFF
             -DCMAKE_BUILD_TYPE=Release
@@ -447,7 +445,7 @@ jobs:
   # Cache:   cache-check-seq-${{matrix.sanitizer}}
   # Upload: upload-check-seq-${{matrix.sanitizer}}
   test-seq-check:
-    needs: [build-file-lsan, build-seq-mfem]
+    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -507,7 +505,7 @@ jobs:
   # Cache:   cache-check-par-${{matrix.sanitizer}}
   # Upload: upload-check-par-${{matrix.sanitizer}}
   test-par-check:
-    needs: [build-file-lsan, build-par-mfem]
+    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -608,7 +606,7 @@ jobs:
   # Cache:   cache-examples-seq-${{matrix.sanitizer}}
   # Upload: upload-examples-seq-${{matrix.sanitizer}}
   test-seq-examples:
-    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem, test-seq-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -672,7 +670,7 @@ jobs:
   # Cache:   cache-examples-par-${{matrix.sanitizer}}
   # Upload: upload-examples-par-${{matrix.sanitizer}}
   test-par-examples:
-    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem, test-par-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -756,7 +754,7 @@ jobs:
   # Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
   # Upload: upload-miniapps-seq-${{matrix.sanitizer}}
   test-seq-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem, test-seq-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -820,7 +818,7 @@ jobs:
   # Cache:   cache-miniapps-par-${{matrix.sanitizer}}
   # Upload: upload-miniapps-par-${{matrix.sanitizer}}
   test-par-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem, test-par-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -904,7 +902,7 @@ jobs:
   # Cache:   cache-unit-seq-${{matrix.sanitizer}}
   # Upload: upload-unit-seq-${{matrix.sanitizer}}
   test-seq-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem, test-seq-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -978,7 +976,7 @@ jobs:
   ####################################
   # Unit tests MFEM Serial SPLIT & RUN
   test-seq-unit-run:
-    needs: [test-seq-unit]
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-unit]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -1048,7 +1046,7 @@ jobs:
   # Cache:   cache-unit-par-${{matrix.sanitizer}}
   # Upload: upload-unit-par-${{matrix.sanitizer}}
   test-par-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem, test-par-check]
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -1142,7 +1140,7 @@ jobs:
   ######################################
   # Unit tests MFEM Parallel SPLIT & RUN
   test-par-unit-run:
-    needs: [test-par-unit]
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-unit]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
