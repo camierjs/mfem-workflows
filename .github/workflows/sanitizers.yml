@@ -40,6 +40,7 @@ env:
   MSAN_OPTIONS: "poison_in_dtor=1"
   LSAN_DIR: lsan
   LSAN_FILE: lsan.supp
+  CMAKE_GENERATOR: Ninja
   CTEST: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
   DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
 
@@ -48,31 +49,34 @@ jobs:
   # Build HYPRE
   # Cache: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
   build-hypre:
-    runs-on: ubuntu-latest
-    name: build-hypre
-    steps:
-      - name: Env
-        run: |
-          echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
-          echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
-      - name: Cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: ${{env.HYPRE_DIR}}
-          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: Setup
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: sudo apt-get install openmpi-bin libopenmpi-dev
-      - name: Build
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: mfem/github-actions/build-hypre@v2.5
-        with:
-          archive: ${{env.HYPRE_TGZ}}
-          dir: ${{env.HYPRE_DIR}}
-          target: int32
-          precision: fp64
-          build-system: make
+    uses: ./.github/actions/build-hypre
+    with:
+      HYPRE_VER: ${{env.HYPRE_VER}}
+    # runs-on: ubuntu-latest
+    # name: build-hypre
+    # steps:
+    #   - name: Env
+    #     run: |
+    #       echo "HYPRE_DIR=hypre-${{env.HYPRE_VER}}" >> $GITHUB_ENV
+    #       echo "HYPRE_TGZ=v${{env.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
+    #   - name: Cache
+    #     id: cache
+    #     uses: actions/cache@v4
+    #     with:
+    #       path: ${{env.HYPRE_DIR}}
+    #       key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+    #   - name: Setup
+    #     if: steps.cache.outputs.cache-hit != 'true'
+    #     run: sudo apt-get install openmpi-bin libopenmpi-dev
+    #   - name: Build
+    #     if: steps.cache.outputs.cache-hit != 'true'
+    #     uses: mfem/github-actions/build-hypre@v2.5
+    #     with:
+    #       archive: ${{env.HYPRE_TGZ}}
+    #       dir: ${{env.HYPRE_DIR}}
+    #       target: int32
+    #       precision: fp64
+    #       build-system: make
 
   #############
   # Build METIS
