@@ -1,0 +1,24 @@
+name: 'Install MPI'
+description: 'Installs MPI and set up its environment variables for MFEM sanitizer workflow'
+
+runs:
+  using: 'composite'
+  steps:  
+    - name: Install 
+      run: sudo apt-get install openmpi-bin libopenmpi-dev
+      shell: bash
+
+    - name: Env
+      run: |
+        echo PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe >> $GITHUB_ENV
+        echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
+        echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
+      shell: bash
+
+    - name: Echo (Parallel)
+      if: ${{ inputs.Parallel == 'true' }}
+      run: |
+        echo "[MPI] Version: $(mpicxx --showme:version)"
+        echo "[MPI] Compile: $(mpicxx --showme:compile)"
+        echo "[MPI] Link: $(mpicxx --showme:link)"
+      shell: bash

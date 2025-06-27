@@ -43,7 +43,7 @@ inputs:
     type: string
     default: '4.0.3'
 
-  Parallel:
+  parallel:
     description: 'Whether to set up for parallel build (true/false)'
     required: false
     type: string
@@ -83,18 +83,9 @@ runs:
         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
       shell: bash
   
-    # - name: Setup (Parallel)
-    #   if: ${{ inputs.Parallel == 'true' }}
-    #   run: |
-    #     sudo apt-get install openmpi-bin libopenmpi-dev
-    #   shell: bash
-
     - name: Env (Parallel)
-      if: ${{ inputs.Parallel == 'true' }}
+      if: ${{ inputs.parallel == 'true' }}
       run: |
-        echo PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe >> $GITHUB_ENV
-        echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
-        echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
         echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
         echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
         echo METIS_DIR=metis-${{inputs.METIS_VER}}
@@ -102,11 +93,8 @@ runs:
       shell: bash
 
     - name: Echo (Parallel)
-      if: ${{ inputs.Parallel == 'true' }}
+      if: ${{ inputs.parallel == 'true' }}
       run: |
-        echo "[MPI] Version: $(mpicxx --showme:version)"
-        echo "[MPI] Compile: $(mpicxx --showme:compile)"
-        echo "[MPI] Link: $(mpicxx --showme:link)"
         echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
         echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
         echo "[METIS_DIR] ${{ env.METIS_DIR }}"

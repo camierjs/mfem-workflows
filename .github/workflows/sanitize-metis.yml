@@ -15,10 +15,10 @@ jobs:
       METIS_TGZ: metis-${{inputs.METIS_VER}}.tar.gz
     steps:
       - uses: actions/checkout@v4
-      - name: Setup
-        uses: ./.github/actions/sanitize/setup
+      - name: Env
+        uses: ./.github/actions/sanitize/env
         with:
-          Parallel: 'true'
+          parallel: 'true'
       - name: Cache
         id: cache
         uses: actions/cache@v4
@@ -27,7 +27,7 @@ jobs:
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
       - name: Setup
         if: steps.cache.outputs.cache-hit != 'true'
-        run: sudo apt-get install openmpi-bin libopenmpi-dev
+        uses: ./.github/actions/sanitize/mpi
       - name: Build
         if: steps.cache.outputs.cache-hit != 'true'
         uses: mfem/github-actions/build-metis@v2.5
