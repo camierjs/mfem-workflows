@@ -1,4 +1,4 @@
-name: test-par-examples
+name: test-par-miniapps
 
 on:
   workflow_call:
@@ -19,11 +19,12 @@ on:
         default: 'lsan.supp'
 
 ########################
-# Examples MFEM Parallel
-# Cache:   cache-examples-par-${{matrix.sanitizer}}
-# Upload: upload-examples-par-${{matrix.sanitizer}}
+# Miniapps MFEM Parallel
+# Cache:   cache-miniapps-par-${{matrix.sanitizer}}
+# Upload: upload-miniapps-par-${{matrix.sanitizer}}
 jobs:
-  test-par-examples:
+  test-par-miniapps:
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -40,8 +41,8 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mfem/build/examples/ex1p
-          key: cache-examples-par-${{matrix.sanitizer}}
+          path: mfem/build/miniapps/meshing/pminimal-surface
+          key: cache-miniapps-par-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
@@ -71,7 +72,7 @@ jobs:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore LSAN
+      - name: Restore LSAN file
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
@@ -97,11 +98,11 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Build Examples
+      - name: Build Miniapps
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ninja -v examples
-      - name: Test Examples
+        run: ninja -v miniapps
+      - name: Test Miniapps
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ${{env.CTEST}} examples
+        run: ${{env.CTEST}} miniapps

@@ -1,4 +1,4 @@
-name: build-hypre
+name: build-libcxx
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: test-par-examples
+name: test-seq-miniapps
 
 on:
   workflow_call:
@@ -18,17 +18,17 @@ on:
         type: string
         default: 'lsan.supp'
 
-########################
-# Examples MFEM Parallel
-# Cache:   cache-examples-par-${{matrix.sanitizer}}
-# Upload: upload-examples-par-${{matrix.sanitizer}}
+######################
+# Miniapps MFEM Serial
+# Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
+# Upload: upload-miniapps-seq-${{matrix.sanitizer}}
 jobs:
-  test-par-examples:
+  test-seq-miniapps:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        sanitizer: [asan, ubsan]
+        sanitizer: [asan, msan, ubsan]
     name: ${{matrix.sanitizer}}
     env:
       DEBUG: ${{inputs.DEBUG}}
@@ -40,15 +40,12 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mfem/build/examples/ex1p
-          key: cache-examples-par-${{matrix.sanitizer}}
+          path: mfem/build/miniapps/meshing/minimal-surface
+          key: cache-miniapps-seq-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
@@ -57,30 +54,13 @@ jobs:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      - name: Restore Hypre
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.HYPRE_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: Restore Metis
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.METIS_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore LSAN
+      - name: Restore LSAN file
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.LSAN_DIR}}
           fail-on-cache-miss: true
           key: cache-lsan-suppression-file
-      - name: Hypre/Metis links
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       - name: Checkout
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
@@ -91,17 +71,17 @@ jobs:
       - name: Download MFEM
         uses: actions/download-artifact@v4
         with:
-          name: upload-mfem-par-${{matrix.sanitizer}}
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Build Examples
+      - name: Build Miniapps
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ninja -v examples
-      - name: Test Examples
+        run: ninja -v miniapps
+      - name: Test Miniapps
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ${{env.CTEST}} examples
+        run: ${{env.CTEST}} miniapps
