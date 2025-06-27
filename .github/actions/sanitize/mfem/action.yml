@@ -106,6 +106,7 @@ runs:
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       working-directory: mfem/build
       run: find . -type f -name '*.o' -delete
+      shell: bash
 
     - name: Upload
       uses: actions/upload-artifact@v4
