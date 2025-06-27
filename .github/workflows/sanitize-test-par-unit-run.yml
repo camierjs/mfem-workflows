@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: 'lsan.supp'
+      LLVM_VER:
+        description: 'LLVM version to use'
+        required: false
+        type: string
+        default: '19.1.7'
 
 ########################################
 # Unit tests MFEM Parallel (Split & Run)
@@ -26,13 +31,14 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        sanitizer: [asan, ubsan]
+        san: [asan, ubsan]
         tag: [0, 1, 2, 3]
-    name: ${{matrix.sanitizer}}-${{matrix.tag}}
+    name: ${{matrix.san}}-${{matrix.tag}}
     env:
       DEBUG: ${{inputs.DEBUG}}
       LSAN_DIR: ${{inputs.LSAN_DIR}}
       LSAN_FILE: ${{inputs.LSAN_FILE}}
+      LLVM_VER: ${{inputs.LLVM_VER}}
     steps:
       - name: Setup
         run: |
@@ -46,7 +52,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.san}}
       - name: Restore Hypre
         uses: actions/cache/restore@v4
         with:
@@ -76,7 +82,7 @@ jobs:
       - name: Download MFEM
         uses: actions/download-artifact@v4
         with:
-          name: upload-mfem-par-${{matrix.sanitizer}}
+          name: upload-mfem-par-${{matrix.san}}
           path: mfem/build
       - name: Ninja Patch
         working-directory: mfem/build
@@ -89,7 +95,7 @@ jobs:
       - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
-          name: upload-unit-par-${{matrix.sanitizer}}
+          name: upload-unit-par-${{matrix.san}}
           path: mfem/build/tests/unit
       - name: Copy Data
         working-directory: mfem/build

@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: 'lsan.supp'
+      LLVM_VER:
+        description: 'LLVM version to use'
+        required: false
+        type: string
+        default: '19.1.7'
 
 ######################################
 # Unit tests MFEM Serial (Split & Run)
@@ -33,6 +38,7 @@ jobs:
       DEBUG: ${{inputs.DEBUG}}
       LSAN_DIR: ${{inputs.LSAN_DIR}}
       LSAN_FILE: ${{inputs.LSAN_FILE}}
+      LLVM_VER: ${{inputs.LLVM_VER}}
     steps:
       - name: Setup
         run: |
