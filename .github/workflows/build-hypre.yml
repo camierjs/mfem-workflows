@@ -5,8 +5,9 @@ on:
     inputs:
       HYPRE_VER:
         description: 'HYPRE version to build'
-        required: true
-        default: '19.1.7'
+        required: false
+        type: string
+        default: '2.19.0'
 
   #############
   # Build HYPRE
