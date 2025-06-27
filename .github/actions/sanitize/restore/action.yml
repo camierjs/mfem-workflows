@@ -107,6 +107,7 @@ runs:
       run: |
         ninja cmake_object_order_depends_target_unit_tests
         cp -pR ../tests/unit/data tests/unit
+      shell: bash
 
     - name: Ninja Patch
       # if: ${{ steps.cache.outputs.cache-hit != 'true' }}
