@@ -41,7 +41,7 @@ env:
   LSAN_DIR: lsan
   LSAN_FILE: lsan.supp
   CTEST: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
-  DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
+  DEBUG: false  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
   #############################
