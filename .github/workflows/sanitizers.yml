@@ -49,7 +49,7 @@ jobs:
   # Build HYPRE
   # Cache: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
   build-hypre:
-    uses: ./.github/workflows/sanitizers/build-hypre
+    uses: ./.github/workflows/build-hypre
     with:
       HYPRE_VER: ${{env.HYPRE_VER}}
     # runs-on: ubuntu-latest
