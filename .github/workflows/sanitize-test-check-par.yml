@@ -17,11 +17,8 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-
       - uses: ./.github/actions/sanitize/env
-
       - uses: ./.github/actions/sanitize/mpi
-
       - uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1p
@@ -83,6 +80,7 @@ jobs:
       #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       #   working-directory: mfem/build
       #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+    
       - name: MFEM Check
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
