@@ -935,12 +935,12 @@ jobs:
         with:
           name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja cmake_object_order_depends_target_unit_tests
+      # - name: Copy Data
+      #   working-directory: mfem/build
+      #   run: ninja cmake_object_order_depends_target_unit_tests
         # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
-      # - name: Copy Unit tests data
-      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Ninja Patch
         working-directory: mfem/build
         run: |
@@ -1081,12 +1081,12 @@ jobs:
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja cmake_object_order_depends_target_unit_tests
+      # - name: Copy Data
+      #   working-directory: mfem/build
+      #   run: ninja cmake_object_order_depends_target_unit_tests
         # copy_data copy_miniapps_nurbs_data copy_miniapps_meshing_data
-      # - name: Copy Unit tests data
-      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
@@ -1160,11 +1160,11 @@ jobs:
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
           sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja cmake_object_order_depends_target_unit_tests
-      # - name: Copy Unit tests data
-      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      # - name: Copy Data
+      #   working-directory: mfem/build
+      #   run: ninja cmake_object_order_depends_target_unit_tests
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
@@ -1333,11 +1333,11 @@ jobs:
         with:
           name: upload-unit-par-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja cmake_object_order_depends_target_unit_tests
-      # - name: Copy Unit tests data
-      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      # - name: Copy Data
+      #   working-directory: mfem/build
+      #   run: ninja cmake_object_order_depends_target_unit_tests
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
