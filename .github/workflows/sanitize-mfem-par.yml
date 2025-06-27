@@ -5,7 +5,7 @@ on:
     inputs:
       DEBUG:
         type: boolean
-        default: false
+        default: true
         required: false
       CLANG_VER:
         description: 'CLANG version to use'
