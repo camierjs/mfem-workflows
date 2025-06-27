@@ -935,6 +935,12 @@ jobs:
         with:
           name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja cmake_object_order_depends_target_unit_tests
+        # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Ninja Patch
         working-directory: mfem/build
         run: |
@@ -1006,10 +1012,6 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v unit_tests
-      # - name: Run Unit Tests
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   working-directory: mfem/build
-      #   run: ${{env.CTEST}} tests/unit -R "unit_tests$"
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
@@ -1158,6 +1160,12 @@ jobs:
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
           sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja cmake_object_order_depends_target_unit_tests
+        # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
+      - name: Copy Unit tests data
+        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
@@ -1244,10 +1252,6 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      # - name: Run Unit Tests (!(p)unit_tests(_np))
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   working-directory: mfem/build
-      #   run: ${{env.CTEST}} tests/unit -E "unit_tests"
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
