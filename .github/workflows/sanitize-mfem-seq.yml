@@ -4,8 +4,8 @@ on:
   workflow_call:
     inputs:
       DEBUG:
-        type: boolean
-        default: true
+        type: string
+        default: 'true'
         required: false
       CLANG_VER:
         description: 'CLANG version to use'
