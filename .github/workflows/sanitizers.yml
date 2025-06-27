@@ -1098,7 +1098,7 @@ jobs:
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build
         # run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
-        run: ${{env.CTEST}} tests/unit -R "unit_tests"
+        run: ${{env.CTEST}} tests/unit -V -R "unit_tests"
 
   ###################################
   # Tests Unit Miniapps MFEM Parallel
@@ -1163,9 +1163,8 @@ jobs:
       - name: Copy Data
         working-directory: mfem/build
         run: ninja cmake_object_order_depends_target_unit_tests
-        # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
-      - name: Copy Unit tests data
-        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      # - name: Copy Unit tests data
+      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
@@ -1251,7 +1250,7 @@ jobs:
       - name: Build Unit Tests
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ninja -v punit_tests  # tests/unit/all
+        run: ninja -v punit_tests
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
@@ -1337,9 +1336,8 @@ jobs:
       - name: Copy Data
         working-directory: mfem/build
         run: ninja cmake_object_order_depends_target_unit_tests
-        # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
-      - name: Copy Unit tests data
-        run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
+      # - name: Copy Unit tests data
+      #   run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
@@ -1350,5 +1348,4 @@ jobs:
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build
-        # ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
-        run: ${{env.CTEST}} tests/unit -R "punit_tests"
+        run: ${{env.CTEST}} tests/unit -V -R "punit_tests"
