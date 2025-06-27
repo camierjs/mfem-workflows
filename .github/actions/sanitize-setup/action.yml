@@ -83,11 +83,11 @@ runs:
         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
       shell: bash
   
-    - name: Setup (Parallel)
-      if: ${{ inputs.Parallel == 'true' }}
-      run: |
-        sudo apt-get install openmpi-bin libopenmpi-dev
-      shell: bash
+    # - name: Setup (Parallel)
+    #   if: ${{ inputs.Parallel == 'true' }}
+    #   run: |
+    #     sudo apt-get install openmpi-bin libopenmpi-dev
+    #   shell: bash
 
     - name: Env (Parallel)
       if: ${{ inputs.Parallel == 'true' }}
