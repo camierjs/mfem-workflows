@@ -51,7 +51,6 @@ inputs:
 
 runs:
   using: 'composite'
-  shell: bash
   steps:
     - name: Env
       run: |
@@ -59,16 +58,19 @@ runs:
         echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
         echo LLVM_DIR=${{github.workspace}}/llvm >> $GITHUB_ENV
         echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+      shell: bash
 
     - name: Env (bis)
       run: |
         echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
         echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
+      shell: bash
 
     - name: Env (ter)
       run: |
         echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
         echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
+      shell: bash
   
     - name: Echo
       run: |
@@ -79,11 +81,13 @@ runs:
         echo "[LLVM_LIB] ${{ env.LLVM_LIB }}"
         echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
+      shell: bash
   
     - name: Setup (Parallel)
       if: ${{ inputs.Parallel == 'true' }}
       run: |
         sudo apt-get install openmpi-bin libopenmpi-dev
+      shell: bash
 
     - name: Env (Parallel)
       if: ${{ inputs.Parallel == 'true' }}
@@ -93,6 +97,7 @@ runs:
         echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
         echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
         echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
+      shell: bash
 
     - name: Echo (Parallel)
       if: ${{ inputs.Parallel == 'true' }}
@@ -103,3 +108,4 @@ runs:
         echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
         echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
         echo "[METIS_DIR] ${{ env.METIS_DIR }}"
+      shell: bash
