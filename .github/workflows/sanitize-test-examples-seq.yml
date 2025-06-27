@@ -1,0 +1,73 @@
+name: test-seq-examples
+
+on:
+  workflow_call:
+
+######################
+# Examples MFEM Serial
+# Cache:   cache-examples-seq-${{matrix.sanitizer}}
+# Upload: upload-examples-seq-${{matrix.sanitizer}}
+jobs:
+  test-seq-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: ${{matrix.sanitizer}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/restore
+        with:
+          cache-path: mfem/build/examples/ex1
+          cache-key: examples-seq-${{matrix.sanitizer}}
+          artifact-name: mfem-seq-${{matrix.sanitizer}}
+
+      # - name: Cache
+      #   if: ${{ env.DEBUG == 'true' }}
+      #   id: cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem/build/examples/ex1
+      #     key: cache-examples-seq-${{matrix.sanitizer}}
+      # - name: Restore LLVM libcxx
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LLVM_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      # - name: Restore LSAN file
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LSAN_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-lsan-suppression-file
+      # - name: Checkout
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: mfem
+      #     ref: ubsan
+      #     repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      # - name: Download MFEM
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: upload-mfem-seq-${{matrix.sanitizer}}
+      #     path: mfem/build
+      # - name: Ninja Patch
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   working-directory: mfem/build
+      #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+
+      - name: Build Examples
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ninja -v examples
+
+      - name: Test Examples
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} examples

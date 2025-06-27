@@ -51,12 +51,12 @@ jobs:
 
   #############################################################################
   # Examples MFEM Serial/Parallel
-  # test-seq-examples:
-  #   needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-  #   uses: ./.github/workflows/sanitize-test-seq-examples.yml
+  test-seq-examples:
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
+    uses: ./.github/workflows/sanitize-test-examples-seq.yml
   # test-par-examples:
   #   needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-  #   uses: ./.github/workflows/sanitize-test-par-examples.yml
+  #   uses: ./.github/workflows/sanitize-test-examples-par.yml
 
   #############################################################################
   # Miniapps MFEM Serial/Parallel
