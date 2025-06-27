@@ -1,0 +1,80 @@
+name: build-hypre
+
+on:
+  workflow_call:
+    inputs:
+      LLVM_VER:
+        description: 'LLVM version to use'
+        required: false
+        type: string
+        default: '19.1.7'
+
+#############
+# LLVM libcxx
+# https://github.com/llvm/llvm-project/tree/main/libcxx
+# Cache: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+jobs:
+  build-llvm-libcxx:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+        include:
+          - sanitizer: asan
+            llvm_use_sanitizer: "Address"
+          - sanitizer: msan
+            llvm_use_sanitizer: "MemoryWithOrigins"
+          - sanitizer: ubsan
+            llvm_use_sanitizer: "Undefined"
+    name: ${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+    steps:
+      - name: Env
+        run: |
+          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+      - name: Cache
+        if: ${{ env.DEBUG == 'true' }}
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          key: cache-llvm-${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Clone
+        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        run: >
+          git clone --filter=blob:none --depth=1
+          --branch llvmorg-${{inputs.LLVM_VER}}
+          --no-checkout https://github.com/llvm/llvm-project.git llvm-project
+      - name: Checkout
+        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: llvm-project
+        run: |
+          git sparse-checkout set --cone
+          git checkout llvmorg-${{inputs.LLVM_VER}}
+          git sparse-checkout set cmake llvm/cmake runtimes libcxx libcxxabi
+      - name: Mkdir
+        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        run: mkdir ${{env.LLVM_DIR}}
+      - name: CMake
+        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: ${{env.LLVM_DIR}}
+        run: >
+          VERBOSE=1
+          cmake -GNinja ../llvm-project/runtimes/
+          -DCMAKE_C_COMPILER=${{env.CC}}
+          -DCMAKE_CXX_COMPILER=${{env.CXX}}
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DLLVM_USE_SANITIZER=${{matrix.llvm_use_sanitizer}}
+          -DLLVM_BUILD_32_BITS=OFF
+          -DLIBCXXABI_USE_LLVM_UNWINDER=OFF
+          -DLLVM_INCLUDE_TESTS=OFF
+          -DLIBCXX_INCLUDE_TESTS=OFF
+          -DLIBCXX_INCLUDE_BENCHMARKS=OFF
+          -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi'
+      - name: Build
+        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: ${{env.LLVM_DIR}}
+        run: cmake --build . -- cxx cxxabi
