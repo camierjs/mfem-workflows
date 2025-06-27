@@ -44,19 +44,6 @@ env:
   DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
-  #############################
-  # Man pages: sed, split, shuf
-  # man:
-  #   runs-on: ubuntu-latest
-  #   name: man
-  #   steps:
-  #     - name: sed
-  #       run: man sed
-  #     - name: split
-  #       run: man split
-  #     - name: shuf
-  #       run: man shuf
-
   #############
   # Build HYPRE
   # Cache: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
