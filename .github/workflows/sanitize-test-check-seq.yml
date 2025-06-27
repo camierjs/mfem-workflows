@@ -25,6 +25,7 @@ jobs:
           cache-path: mfem/build/examples/ex1
           cache-key: check-seq-${{matrix.sanitizer}}
           artifact-name: mfem-seq-${{matrix.sanitizer}}
+          par: false
 
       - name: MFEM Check
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
