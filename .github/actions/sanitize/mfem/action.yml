@@ -10,7 +10,7 @@ inputs:
   par:
     description: 'Whether to build for parallel (true/false)'
     required: false
-    type: boolean
+    type: string
     default: false
 
 runs:
@@ -33,9 +33,9 @@ runs:
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
 
     - name: Setup MPI
-      if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
       uses: ./.github/actions/sanitize/mpi
-      
+
     - name: Checkout
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/checkout@v4
@@ -45,7 +45,7 @@ runs:
         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
 
     - name: Restore Hypre
-      if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.HYPRE_DIR}}
@@ -53,7 +53,7 @@ runs:
         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
 
     - name: Restore Metis
-      if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.METIS_DIR}}
