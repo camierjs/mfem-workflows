@@ -1097,7 +1097,7 @@ jobs:
           shuf list-test-names -o list-test-names
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: Run Unit Tests ${{matrix.tag}}
-        working-directory: mfem/build/tests/unit
+        working-directory: mfem/build
         # run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
         run: ${{env.CTEST}} tests/unit -R "unit_tests"
 
