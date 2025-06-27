@@ -45,7 +45,7 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-    name: build-seq-mfem-${{matrix.sanitizer}}
+    name: ${{matrix.sanitizer}}
     steps:
       - name: Cache
         if: ${{ inputs.DEBUG == 'true' }}

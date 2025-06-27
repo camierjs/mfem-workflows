@@ -68,6 +68,7 @@ jobs:
 
   ###################
   # Build MFEM Serial
+  build-seq-mfem:
     uses: ./.github/workflows/sanitize-mfem-seq.yml
 
   #####################
