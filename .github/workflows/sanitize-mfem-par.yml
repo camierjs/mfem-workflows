@@ -46,8 +46,8 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-    # env:
-    #   LLVM_DIR: ${GITHUB_WORKSPACE}/llvm
+    env:
+      LLVM_DIR: ${GITHUB_WORKSPACE}/llvm
     name: ${{matrix.sanitizer}}
     steps:
       - name: Cache
@@ -57,13 +57,11 @@ jobs:
         with:
           path: mfem/build
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Env
-        run: echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
-          path: ${{inputs.LLVM_DIR}}
+          path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
@@ -75,8 +73,8 @@ jobs:
           echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
           echo CC=clang-${{inputs.CLANG_VER}} >> $GITHUB_ENV
           echo CXX=clang++-${{inputs.CLANG_VER}} >> $GITHUB_ENV
-          echo LLVM_INC=${LLVM_DIR}/include/c++/v1 >> $GITHUB_ENV
-          echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
+          echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
+          echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
           echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{inputs.METIS_VER}} >> $GITHUB_ENV
       - name: Setup (LLVM)
