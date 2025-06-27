@@ -1044,6 +1044,18 @@ jobs:
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
+      - name: ls DATA_DIR
+        # working-directory: mfem/build/tests/unit
+        run: |
+          ls -l
+          ls -l mfem
+          ls -l mfem/tests
+          ls -l mfem/tests/unit
+          ls -l mfem/tests/unit/data
+          ls -l mfem/build
+          ls -l mfem/build/tests
+          ls -l mfem/build/tests/unit
+          ls -l ${{env.DATA_DIR}}
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
         run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${{env.DATA_DIR}}
