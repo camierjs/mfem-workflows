@@ -295,12 +295,13 @@ jobs:
           config-options: >-
             -GNinja
             -DMPICXX=${{env.CXX}}
+            -DBUILD_SHARED_LIBS=ON
             -DCMAKE_CXX_STANDARD=17
             -DMFEM_USE_MEMALLOC=OFF
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
-            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -421,12 +422,13 @@ jobs:
           config-options: >-
             -GNinja
             -DMPICXX=${{env.CXX}}
+            -DBUILD_SHARED_LIBS=ON
             -DCMAKE_CXX_STANDARD=17
             -DMFEM_USE_MEMALLOC=OFF
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
-            -DCMAKE_CXX_FLAGS_RELEASE='-g -O2 -fno-omit-frame-pointer'
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
