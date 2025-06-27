@@ -17,11 +17,6 @@ on:
         required: false
         type: string
         default: '19.1.7'
-      LLVM_DIR:
-        description: 'LLVM path'
-        required: false
-        type: string
-        default: 'llvm'
       HYPRE_VER:
         description: 'HYPRE version to build'
         required: false
@@ -51,6 +46,8 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
+    # env:
+    #   LLVM_DIR: ${GITHUB_WORKSPACE}/llvm
     name: ${{matrix.sanitizer}}
     steps:
       - name: Cache
