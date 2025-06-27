@@ -52,30 +52,8 @@ jobs:
 
   #############
   # Build METIS
-  # Cache: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
   build-metis:
-    runs-on: ubuntu-latest
-    name: build-metis
-    steps:
-      - name: Env
-        run: |
-          echo "METIS_DIR=metis-${{env.METIS_VER}}" >> $GITHUB_ENV
-          echo "METIS_TGZ=metis-${{env.METIS_VER}}.tar.gz" >> $GITHUB_ENV
-      - name: Cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: ${{env.METIS_DIR}}
-          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Setup
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: sudo apt-get install openmpi-bin libopenmpi-dev
-      - name: Build
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: mfem/github-actions/build-metis@v2.5
-        with:
-          archive: ${{env.METIS_TGZ}}
-          dir: ${{env.METIS_DIR}}
+    uses: ./.github/workflows/sanitize-metis.yml
 
   #######################
   # LSAN suppression file
