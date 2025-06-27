@@ -48,7 +48,7 @@ jobs:
   #############
   # Build HYPRE
   build-hypre:
-    uses: ./.github/workflows/build-hypre.yml
+    uses: ./.github/workflows/sanitize-hypre.yml
 
   #############
   # Build METIS
