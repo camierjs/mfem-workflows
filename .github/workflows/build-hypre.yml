@@ -15,7 +15,7 @@ on:
 jobs:
   build-hypre:
     runs-on: ubuntu-latest
-    name: build-hypre
+    name: ${{inputs.HYPRE_VER}}
     steps:
       - name: Env
         run: |
