@@ -1,4 +1,4 @@
-name: 'Respawn state'
+name: 'Restore state'
 
 description: 'Restore state to be able to run checks, tests'
 
@@ -67,6 +67,7 @@ runs:
     - name: Hypre/Metis links
       if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
       run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      shell: bash
 
     - name: Checkout
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
@@ -86,3 +87,4 @@ runs:
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       working-directory: mfem/build
       run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      shell: bash
