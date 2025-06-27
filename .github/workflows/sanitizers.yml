@@ -1,7 +1,8 @@
 # GitHub Actions:
-#  - cache:   https://github.com/marketplace/actions/cache
-#  - restore: https://github.com/actions/cache/blob/main/restore/README.md
-#  - upload:  https://github.com/marketplace/actions/upload-a-build-artifact
+#  - cache:     https://github.com/marketplace/actions/cache
+#  - restore:   https://github.com/actions/cache/blob/main/restore/README.md
+#  - upload:    https://github.com/marketplace/actions/upload-a-build-artifact
+#  - download:  https://github.com/marketplace/actions/download-a-build-artifact
 ---
 
 name: "Sanitizers"
@@ -39,22 +40,22 @@ env:
   MSAN_OPTIONS: "poison_in_dtor=1"
   LSAN_DIR: lsan
   LSAN_FILE: lsan.supp
-  CTEST: ctest -j --test-load $(nproc) --stop-on-failure --schedule-random --output-on-failure --test-dir
-  DEBUG: false # if 'true', then use cache to speed up the workflow
+  CTEST: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
+  DEBUG: false  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
-  #######################
+  #############################
   # Man pages: sed, split, shuf
-  man:
-    runs-on: ubuntu-latest
-    name: man
-    steps:
-      - name: sed
-        run: man sed
-      - name: split
-        run: man split
-      - name: shuf
-        run: man shuf
+  # man:
+  #   runs-on: ubuntu-latest
+  #   name: man
+  #   steps:
+  #     - name: sed
+  #       run: man sed
+  #     - name: split
+  #       run: man split
+  #     - name: shuf
+  #       run: man shuf
 
   #############
   # Build HYPRE
@@ -492,7 +493,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -593,7 +594,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -657,7 +658,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -743,7 +744,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -809,7 +810,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -895,7 +896,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -926,7 +927,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mfem/build/tests/unit
+          path: mfem/build/tests/unit/unit_tests
           key: cache-unit-seq-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
@@ -961,7 +962,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -969,7 +970,10 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-        # 🔥 Should run all but unit_tests here
+      - name: Run Unit Tests (!unit_tests)
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$"
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
@@ -978,7 +982,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
-          path: mfem/build/tests/unit
+          path: mfem/build/tests/unit/unit_tests
           if-no-files-found: error
           retention-days: 1
           overwrite: false
@@ -1027,7 +1031,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-seq-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Copy Data
@@ -1076,7 +1080,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: mfem/build/tests/unit
+          path: mfem/build/tests/unit/punit_tests
           key: cache-unit-par-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
@@ -1131,7 +1135,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -1139,7 +1143,10 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-        # 🔥 Should run all but punit_tests here
+      - name: Run Unit Tests (!punit_tests)
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -E "^punit_tests$"
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
@@ -1148,11 +1155,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: upload-unit-par-${{matrix.sanitizer}}
-          path: mfem/build/tests/unit
+          path: mfem/build/tests/unit/punit_tests
           if-no-files-found: error
           retention-days: 1
           overwrite: false
-  
+
   ######################################
   # Unit tests MFEM Parallel SPLIT & RUN
   test-par-unit-run:
@@ -1210,7 +1217,7 @@ jobs:
           path: mfem/build
           fail-on-cache-miss: true
           key: cache-mfem-par-${{matrix.sanitizer}}
-      - name: Patch Ninja
+      - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       - name: Copy Data
