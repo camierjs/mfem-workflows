@@ -13,7 +13,7 @@ permissions:
 on:
   # Run on pushes to main development branches
   push:
-    branches: ["main"]
+    branches: [main]
   # Run on all pull requests
   pull_request:
   # Allow manual triggering for debugging
@@ -1058,7 +1058,7 @@ jobs:
         working-directory: mfem/build
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-          sed -i -e '/^add_test(\[=\[unit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake    
+          sed -i -e '/^add_test(\[=\[unit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
       - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
@@ -1150,7 +1150,7 @@ jobs:
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      - name: Run Unit Tests Miniapps 
+      - name: Run Unit Tests Miniapps
         working-directory: mfem/build
         run: ${{env.CTEST}} tests/unit -E "unit_tests"
 
@@ -1307,7 +1307,7 @@ jobs:
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
           sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
-      - name : Cat CTestTestfile.cmake
+      - name: Cat CTestTestfile.cmake
         working-directory: mfem/build/tests/unit
         run: cat CTestTestfile.cmake
       - name: Download Unit Tests
