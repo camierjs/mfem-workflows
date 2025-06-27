@@ -21,6 +21,7 @@ runs:
         with:
           path: mfem/build
           key: cache-${{inputs.key}}
+        shell: bash
       - name: Restore LLVM libcxx
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
@@ -28,6 +29,7 @@ runs:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+        shell: bash
       - name: Checkout
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
@@ -35,6 +37,7 @@ runs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+        shell: bash
       - name: Restore Hypre
         if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
@@ -42,6 +45,7 @@ runs:
           path: ${{env.HYPRE_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+        shell: bash
       - name: Restore Metis
         if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
@@ -49,6 +53,7 @@ runs:
           path: ${{env.METIS_DIR}}
           fail-on-cache-miss: true
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+        shell: bash
       - name: Build (Serial)
         if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'false' }}
         uses: mfem/github-actions/build-mfem@v2.5
@@ -72,6 +77,7 @@ runs:
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+        shell: bash
       - name: Build (Parallel)
         if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'true' }}
         uses: mfem/github-actions/build-mfem@v2.5
@@ -95,10 +101,12 @@ runs:
             -DCMAKE_VERBOSE_MAKEFILE=ON
             -DCMAKE_CXX_COMPILER=${{env.CXX}}
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+        shell: bash
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: find . -type f -name '*.o' -delete
+        shell: bash
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -107,3 +115,4 @@ runs:
           if-no-files-found: error
           retention-days: 1
           overwrite: false
+        shell: bash

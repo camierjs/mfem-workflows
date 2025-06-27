@@ -26,30 +26,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
       - name: Cache
-        if: ${{ env.DEBUG == 'true' }}
         id: cache
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Clone
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: >
           git clone --filter=blob:none --depth=1
           --branch llvmorg-${{env.LLVM_VER}}
           --no-checkout https://github.com/llvm/llvm-project.git llvm-project
       - name: Checkout
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: llvm-project
         run: |
           git sparse-checkout set --cone
           git checkout llvmorg-${{env.LLVM_VER}}
           git sparse-checkout set cmake llvm/cmake runtimes libcxx libcxxabi
       - name: Mkdir
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: mkdir ${{env.LLVM_DIR}}
       - name: CMake
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: ${{env.LLVM_DIR}}
         run: >
           VERBOSE=1
@@ -66,6 +65,6 @@ jobs:
           -DLIBCXX_INCLUDE_BENCHMARKS=OFF
           -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi'
       - name: Build
-        if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: ${{env.LLVM_DIR}}
         run: cmake --build . -- cxx cxxabi
