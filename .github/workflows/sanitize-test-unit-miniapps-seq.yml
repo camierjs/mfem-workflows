@@ -1,24 +1,18 @@
-name: test-seq-miniapps
+name: test-seq-unit-miniapps
 
 on:
   workflow_call:
 
-######################
-# Miniapps MFEM Serial
-# Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
-# Upload: upload-miniapps-seq-${{matrix.sanitizer}}
+##################################
+# Tests Unit Miniapps MFEM Serial
 jobs:
-  test-seq-miniapps:
-
+  test-seq-unit-miniapps:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-
     name: ${{matrix.sanitizer}}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -28,33 +22,22 @@ jobs:
         id: restore
         uses: ./.github/actions/sanitize/restore
         with:
-          cache-path: mfem/build/miniapps/meshing/minimal-surface
-          cache-key: miniapps-seq-${{matrix.sanitizer}}
+          no-cache: true
           artifact-name: mfem-seq-${{matrix.sanitizer}}
 
-      # - name: Cache
-      #   if: ${{ env.DEBUG == 'true' }}
-      #   id: cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: mfem/build/miniapps/meshing/minimal-surface
-      #     key: cache-miniapps-seq-${{matrix.sanitizer}}
       # - name: Restore LLVM libcxx
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       #   uses: actions/cache/restore@v4
       #   with:
       #     path: ${{env.LLVM_DIR}}
       #     fail-on-cache-miss: true
       #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       # - name: Restore LSAN file
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       #   uses: actions/cache/restore@v4
       #   with:
       #     path: ${{env.LSAN_DIR}}
       #     fail-on-cache-miss: true
       #     key: cache-lsan-suppression-file
       # - name: Checkout
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       #   uses: actions/checkout@v4
       #   with:
       #     path: mfem
@@ -65,17 +48,21 @@ jobs:
       #   with:
       #     name: upload-mfem-seq-${{matrix.sanitizer}}
       #     path: mfem/build
-      # - name: Ninja Patch
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      # - name: Copy Data
       #   working-directory: mfem/build
-      #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      #   run: |
+      #     ninja cmake_object_order_depends_target_unit_tests
+      #     cp -pR ../tests/unit/data tests/unit
+      # - name: Ninja Patch
+      #   working-directory: mfem/build
+      #   run: |
+      #     sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      #     sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
 
-      - name: Build Miniapps
-        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+      - name: Build Tests Unit Miniapps
         working-directory: mfem/build
-        run: ninja -v miniapps
+        run: ninja -v tests/unit/all
 
-      - name: Test Miniapps
-        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+      - name: Run Tests Unit Miniapps
         working-directory: mfem/build
-        run: ${{env.CTEST}} miniapps
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$"
