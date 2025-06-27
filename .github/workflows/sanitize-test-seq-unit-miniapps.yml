@@ -1,0 +1,78 @@
+name: test-seq-unit-miniapps
+
+on:
+  workflow_call:
+    inputs:
+      DEBUG:
+        type: string
+        default: 'true'
+        required: false
+      LSAN_DIR:
+        description: 'LSAN suppression directory'
+        required: false
+        type: string
+        default: 'lsan'
+      LSAN_FILE:
+        description: 'LSAN suppression file'
+        required: false
+        type: string
+        default: 'lsan.supp'
+
+##################################
+# Tests Unit Miniapps MFEM Serial
+jobs:
+  test-seq-unit-miniapps:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+    name: ${{matrix.sanitizer}}
+    env:
+      DEBUG: ${{inputs.DEBUG}}
+      LSAN_DIR: ${{inputs.LSAN_DIR}}
+      LSAN_FILE: ${{inputs.LSAN_FILE}}
+    steps:
+      - name: Setup
+        run: |
+          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
+          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - name: Restore LLVM libcxx
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Restore LSAN file
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LSAN_DIR}}
+          fail-on-cache-miss: true
+          key: cache-lsan-suppression-file
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
+          path: mfem/build
+      - name: Copy Data
+        working-directory: mfem/build
+        run: |
+          ninja cmake_object_order_depends_target_unit_tests
+          cp -pR ../tests/unit/data tests/unit
+      - name: Ninja Patch
+        working-directory: mfem/build
+        run: |
+          sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+          sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
+      - name: Build Tests Unit Miniapps
+        working-directory: mfem/build
+        run: ninja -v tests/unit/all
+      - name: Run Tests Unit Miniapps
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$"
