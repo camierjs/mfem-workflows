@@ -15,45 +15,45 @@ runs:
   using: 'composite'
   steps:
     - name: Cache
-      shell: bash
       if: ${{ env.DEBUG == 'true' }}
       id: cache
       uses: actions/cache@v4
       with:
         path: mfem/build
         key: cache-${{inputs.key}}
+
     - name: Restore LLVM libcxx
-      shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.LLVM_DIR}}
         fail-on-cache-miss: true
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+
     - name: Checkout
-      shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/checkout@v4
       with:
         path: mfem
         ref: ubsan
         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+
     - name: Restore Hypre
-      shell: bash
       if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.HYPRE_DIR}}
         fail-on-cache-miss: true
         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+
     - name: Restore Metis
-      shell: bash
       if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.METIS_DIR}}
         fail-on-cache-miss: true
         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+
     - name: Build (Serial)
       shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'false' }}
@@ -78,8 +78,8 @@ runs:
           -DCMAKE_VERBOSE_MAKEFILE=ON
           -DCMAKE_CXX_COMPILER=${{env.CXX}}
           -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+
     - name: Build (Parallel)
-      shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'true' }}
       uses: mfem/github-actions/build-mfem@v2.5
       env:
@@ -102,13 +102,13 @@ runs:
           -DCMAKE_VERBOSE_MAKEFILE=ON
           -DCMAKE_CXX_COMPILER=${{env.CXX}}
           -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+  
     - name: Delete object files
-      shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       working-directory: mfem/build
       run: find . -type f -name '*.o' -delete
+
     - name: Upload
-      shell: bash
       uses: actions/upload-artifact@v4
       with:
         name: upload-${{inputs.key}}
@@ -116,3 +116,4 @@ runs:
         if-no-files-found: error
         retention-days: 1
         overwrite: false
+
