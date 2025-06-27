@@ -5,8 +5,7 @@ inputs:
   # if 'true', then use cache to speed up the workflow while debugging
   DEBUG:
     type: string
-    default: 'false'
-    required: false
+    default: 'true'
 
   LSAN_DIR:
     description: 'LSAN suppression directory'
