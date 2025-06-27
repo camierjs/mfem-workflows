@@ -57,29 +57,8 @@ jobs:
 
   #######################
   # LSAN suppression file
-  # strdup required for Hypre 2.19.0
-  # Cache: cache-lsan-suppression-file
   build-file-lsan:
-    runs-on: ubuntu-latest
-    name: build-file-lsan
-    steps:
-      - name: Cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: ${{env.LSAN_DIR}}
-          key: cache-lsan-suppression-file
-      - name: Setup
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ${{env.LSAN_DIR}}
-          cat << EOF > ${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
-          leak:libevent_core-2.1.so
-          leak:ompi_mpi_finalize
-          leak:ompi_mpi_init
-          leak:PMPI_Init
-          leak:strdup
-          EOF
+    uses: ./.github/workflows/sanitize-lsan.yml
 
   #############
   # LLVM libcxx
