@@ -29,7 +29,6 @@ on:
 # Upload: upload-mfem-seq-${{matrix.sanitizer}}
 jobs:
   build-seq-mfem:
-    needs: [build-llvm-libcxx]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
