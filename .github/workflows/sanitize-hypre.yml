@@ -18,7 +18,7 @@ jobs:
     name: ${{inputs.HYPRE_VER}}
     steps:
       - name: Setup
-        uses: ./.github/actions/sanitize-setup.yml
+        uses: ../actions/sanitize-setup.yml
         with:
           Parallel: 'true'
           HYPRE_VER: ${{inputs.HYPRE_VER}}
