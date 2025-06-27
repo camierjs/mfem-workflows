@@ -18,7 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
-      - uses: ./.github/actions/sanitize/mpi
       - name: Restore
         id: cache
         uses: ./.github/actions/sanitize/restore

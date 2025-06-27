@@ -37,6 +37,8 @@ runs:
         path: ${{inputs.cache-path}}
         key: cache-${{inputs.cache-key}}
 
+
+
     - name: Restore LLVM libcxx
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
@@ -45,6 +47,10 @@ runs:
         fail-on-cache-miss: true
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
   
+    - name: Setup MPI
+      if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
+      uses: ./.github/actions/sanitize/mpi
+
     - name: Restore Hypre
       if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
