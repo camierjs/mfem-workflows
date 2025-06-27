@@ -61,7 +61,7 @@ runs:
       run: |
         echo LLVM_DIR=${{github.workspace}}/llvm >> $GITHUB_ENV
         echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
-        echo METIS_DIR=metis-${{inputs.METIS_VER}}
+        echo METIS_DIR=metis-${{inputs.METIS_VER}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (bis)
