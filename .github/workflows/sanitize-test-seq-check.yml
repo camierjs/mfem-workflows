@@ -17,8 +17,7 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-      - name: Env
-        uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/env
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
         id: cache
@@ -26,11 +25,6 @@ jobs:
         with:
           path: mfem/build/examples/ex1
           key: cache-check-seq-${{matrix.sanitizer}}
-      - name: Setup
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4

@@ -15,12 +15,7 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-      - name: Env
-        uses: ./.github/actions/sanitize/env
-      - name: Setup
-        run: |
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+      - uses: ./.github/actions/sanitize/env
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:

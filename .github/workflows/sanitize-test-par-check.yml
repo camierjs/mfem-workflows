@@ -17,8 +17,8 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-      - name: Env
-        uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/mpi
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
         id: cache
@@ -26,33 +26,6 @@ jobs:
         with:
           path: mfem/build/examples/ex1p
           key: cache-check-par-${{matrix.sanitizer}}
-      - name: Setup
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
-          echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
-          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
-          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Echo
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          echo "[CC] ${{env.CC}}"
-          echo "[CXX] ${{env.CXX}}"
-          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
-          echo "[HYPRE_DIR] ${{env.HYPRE_DIR}}"
-          echo "[METIS_DIR] ${{env.METIS_DIR}}"
-          echo "[MPI] MPI_LIB: ${{env.MPI_LIB}}"
-      - name: Setup (LLVM_LIB)
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-      - name: Setup (LLVM_LDFLAGS)
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4

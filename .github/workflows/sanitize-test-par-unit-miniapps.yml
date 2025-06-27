@@ -15,10 +15,8 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-      - name: Env
-        uses: ./.github/actions/sanitize/env
-      - name: Setup
-        uses: ./.github/actions/sanitize/mpi
+      - uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/mpi
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:

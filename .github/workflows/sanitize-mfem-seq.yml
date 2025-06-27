@@ -27,8 +27,7 @@ jobs:
     name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
-      - name: Env
-        uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/env
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
         id: cache
@@ -43,28 +42,6 @@ jobs:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
           key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      - name: Setup
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1" >> $GITHUB_ENV
-          echo "LLVM_LIB=${{env.LLVM_DIR}}/lib" >> $GITHUB_ENV
-      - name: Setup (LLVM)
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          echo "LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}}" >> $GITHUB_ENV
-          echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
-      - name: Echo
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          echo "[CC] ${{env.CC}}"
-          echo "[CXX] ${{env.CXX}}"
-          echo "[LLVM_DIR] ${{env.LLVM_DIR}}"
-          echo "[LLVM_INC] ${{env.LLVM_INC}}"
-          echo "[LLVM_LIB] ${{env.LLVM_LIB}}"
-          echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
-          echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
       - name: Checkout
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
