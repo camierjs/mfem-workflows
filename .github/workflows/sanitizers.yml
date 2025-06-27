@@ -1045,7 +1045,7 @@ jobs:
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit
+        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit/data
 
   ##########################
   # Unit tests MFEM Parallel
@@ -1228,4 +1228,4 @@ jobs:
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit
+        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit/data
