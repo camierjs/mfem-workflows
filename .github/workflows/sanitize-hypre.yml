@@ -16,10 +16,12 @@ jobs:
   build-hypre:
     runs-on: ubuntu-latest
     name: ${{inputs.HYPRE_VER}}
-    env:
-      HYPRE_DIR: hypre-${{inputs.HYPRE_VER}}
-      HYPRE_TGZ: v${{inputs.HYPRE_VER}}.tar.gz
     steps:
+      - name: Setup
+        uses: ./.github/actions/sanitize-setup.yml
+        with:
+          Parallel: 'true'
+          HYPRE_VER: ${{inputs.HYPRE_VER}}
       - name: Cache
         id: cache
         uses: actions/cache@v4
