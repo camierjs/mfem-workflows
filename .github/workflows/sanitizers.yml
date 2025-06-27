@@ -486,13 +486,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -587,13 +585,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -651,13 +647,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -737,13 +731,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -803,13 +795,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -889,13 +879,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -955,13 +943,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -1025,12 +1011,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-seq-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-seq-${{matrix.sanitizer}}
       - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
@@ -1128,13 +1113,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Ninja Patch
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -1211,12 +1194,11 @@ jobs:
           path: mfem
           ref: ubsan
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Restore MFEM
-        uses: actions/cache/restore@v4
+      - name: Download MFEM
+        uses: actions/download-artifact@v4
         with:
+          name: upload-mfem-par-${{matrix.sanitizer}}
           path: mfem/build
-          fail-on-cache-miss: true
-          key: cache-mfem-par-${{matrix.sanitizer}}
       - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
