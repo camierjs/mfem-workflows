@@ -7,7 +7,7 @@ inputs:
     description: 'Key for the cache/upload'
     required: true
     type: string
-  cach-path:
+  cache-path:
     description: 'path to what needs to be restored'
     required: true
     type: string
