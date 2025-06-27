@@ -25,7 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
-      - uses: ./.github/actions/sanitize/mpi
       - uses: ./.github/actions/sanitize/mfem
         with:
           key: mfem-par-${{matrix.sanitizer}}

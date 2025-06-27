@@ -32,6 +32,10 @@ runs:
         fail-on-cache-miss: true
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
 
+    - name: Setup MPI
+      if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
+      uses: ./.github/actions/sanitize/mpi
+      
     - name: Checkout
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/checkout@v4

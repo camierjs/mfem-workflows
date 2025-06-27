@@ -37,8 +37,6 @@ runs:
         path: ${{inputs.cache-path}}
         key: cache-${{inputs.cache-key}}
 
-
-
     - name: Restore LLVM libcxx
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/restore@v4
