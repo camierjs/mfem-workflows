@@ -10,7 +10,7 @@ on:
       CLANG_VER:
         description: 'CLANG version to use'
         required: false
-        type: integger
+        type: integer
         default: 18
       LLVM_VER:
         description: 'LLVM version to use'
