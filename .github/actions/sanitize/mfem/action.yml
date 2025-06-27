@@ -55,7 +55,6 @@ runs:
         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
 
     - name: Build (Serial)
-      shell: bash
       if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'false' }}
       uses: mfem/github-actions/build-mfem@v2.5
       env:
