@@ -29,6 +29,10 @@ jobs:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
     name: ${{matrix.sanitizer}}-${{matrix.tag}}
+    env:
+      DEBUG: ${{inputs.DEBUG}}
+      LSAN_DIR: ${{inputs.LSAN_DIR}}
+      LSAN_FILE: ${{inputs.LSAN_FILE}}
     steps:
       - name: Setup
         run: |

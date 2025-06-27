@@ -30,6 +30,10 @@ jobs:
       matrix:
         sanitizer: [asan, msan, ubsan]
     name: build-seq-unit-${{matrix.sanitizer}}
+    env:
+      DEBUG: ${{inputs.DEBUG}}
+      LSAN_DIR: ${{inputs.LSAN_DIR}}
+      LSAN_FILE: ${{inputs.LSAN_FILE}}
     steps:
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
