@@ -39,7 +39,7 @@ runs:
           repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
         shell: bash
       - name: Restore Hypre
-        if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.HYPRE_DIR}}
@@ -47,7 +47,7 @@ runs:
           key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
         shell: bash
       - name: Restore Metis
-        if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.par && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ${{env.METIS_DIR}}
@@ -55,7 +55,7 @@ runs:
           key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
         shell: bash
       - name: Build (Serial)
-        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'false' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'false' }}
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
@@ -79,7 +79,7 @@ runs:
             -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
         shell: bash
       - name: Build (Parallel)
-        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'true' }}
+        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'true' }}
         uses: mfem/github-actions/build-mfem@v2.5
         env:
           CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
