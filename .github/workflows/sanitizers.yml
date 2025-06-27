@@ -987,6 +987,7 @@ jobs:
     steps:
       - name: Setup
         run: |
+          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit/data >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
@@ -1045,7 +1046,7 @@ jobs:
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit/data
+        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${{env.DATA_DIR}}
 
   ##########################
   # Unit tests MFEM Parallel
@@ -1162,6 +1163,7 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit/data >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:
@@ -1228,4 +1230,4 @@ jobs:
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${GITHUB_WORKSPACE}/mfem/tests/unit/data
+        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${{env.DATA_DIR}}
