@@ -1,9 +1,3 @@
-# GitHub Actions:
-#  - checkout:  https://github.com/marketplace/actions/checkout
-#  - cache:     https://github.com/marketplace/actions/cache
-#  - restore:   https://github.com/actions/cache/blob/main/restore/README.md
-#  - upload:    https://github.com/marketplace/actions/upload-a-build-artifact
-#  - download:  https://github.com/marketplace/actions/download-a-build-artifact
 ---
 
 name: "Sanitizers"
@@ -24,6 +18,7 @@ concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
+###############################################################################
 env:
   CLANG_VER: 18
   LLVM_VER: 19.1.7    # https://github.com/llvm/llvm-project/releases
@@ -46,328 +41,76 @@ env:
   DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
-  #############
-  # Build HYPRE
+  #############################################################################
   build-hypre:
     uses: ./.github/workflows/sanitize-hypre.yml
 
-  #############
-  # Build METIS
   build-metis:
     uses: ./.github/workflows/sanitize-metis.yml
 
-  #############################
-  # Build LSAN suppression file
   build-file-lsan:
     uses: ./.github/workflows/sanitize-lsan.yml
 
-  #############
-  # LLVM libcxx
   build-llvm-libcxx:
     uses: ./.github/workflows/sanitize-libcxx.yml
 
-  ###################
-  # Build MFEM Serial
+  #############################################################################
+  # Build MFEM Serial/Parallel
   build-seq-mfem:
     needs: [build-llvm-libcxx]
     uses: ./.github/workflows/sanitize-mfem-seq.yml
-  # Build MFEM Parallel
   build-par-mfem:
     needs: [build-llvm-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-mfem-par.yml
 
-  ###################
-  # Check MFEM Serial
+  #############################################################################
+  # Check MFEM Serial/Parallel
   test-seq-check:
     needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem]
     uses: ./.github/workflows/sanitize-test-seq-check.yml
-  # Check MFEM Parallel
   test-par-check:
     needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem]
     uses: ./.github/workflows/sanitize-test-par-check.yml
 
-  ######################
-  # Examples MFEM Serial
+  #############################################################################
+  # Examples MFEM Serial/Parallel
   test-seq-examples:
     needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     uses: ./.github/workflows/sanitize-test-seq-examples.yml
-  # Examples MFEM Parallel
   test-par-examples:
     needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     uses: ./.github/workflows/sanitize-test-par-examples.yml
 
-  ######################
-  # Miniapps MFEM Serial
+  #############################################################################
+  # Miniapps MFEM Serial/Parallel
   test-seq-miniapps:
     needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     uses: ./.github/workflows/sanitize-test-seq-miniapps.yml
-  # Miniapps MFEM Parallel
   test-par-miniapps:
     needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     uses: ./.github/workflows/sanitize-test-par-miniapps.yml
 
-  ##################################
-  # Tests Unit Miniapps MFEM Serial
+  #############################################################################
+  # Tests Unit Miniapps MFEM Serial/Parallel
   test-seq-unit-miniapps:
     needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     uses: ./.github/workflows/sanitize-test-seq-unit-miniapps.yml
+  test-par-unit-miniapps:
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
+    uses: ./.github/workflows/sanitize-test-par-unit-miniapps.yml
 
-  ##################################
-  # Unit tests MFEM Serial (Compile)
+  #############################################################################
+  # Unit tests MFEM Serial/Parallel (Compile, Split & Run)
   build-seq-unit:
     needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     uses: ./.github/workflows/sanitize-test-seq-unit-build.yml
-  # Unit tests MFEM Serial (Split & Run)
   test-seq-unit:
     needs: [build-file-lsan, build-llvm-libcxx, build-seq-unit]
     uses: ./.github/workflows/sanitize-test-seq-unit-run.yml
 
-  ###################################
-  # Tests Unit Miniapps MFEM Parallel
-  test-par-unit-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        sanitizer: [asan, ubsan]
-    name: test-par-unit-miniapps-${{matrix.sanitizer}}
-    steps:
-      - name: Setup
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Restore LLVM libcxx
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LLVM_DIR}}
-          fail-on-cache-miss: true
-          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      - name: Restore Hypre
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.HYPRE_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: Restore Metis
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.METIS_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore LSAN
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LSAN_DIR}}
-          fail-on-cache-miss: true
-          key: cache-lsan-suppression-file
-      - name: Hypre/Metis links
-        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: mfem
-          ref: ubsan
-          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Download MFEM
-        uses: actions/download-artifact@v4
-        with:
-          name: upload-mfem-par-${{matrix.sanitizer}}
-          path: mfem/build
-      - name: Ninja Patch
-        working-directory: mfem/build
-        run: |
-          sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-          sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
-      - name: Copy Data
-        working-directory: mfem/build
-        run: |
-          ninja cmake_object_order_depends_target_unit_tests
-          cp -pR ../tests/unit/data tests/unit
-      - name: Build Tests Unit Miniapps
-        working-directory: mfem/build
-        run: ninja -v tests/unit/all
-      - name: Run Unit Tests Miniapps
-        working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "unit_tests"
-
-  ##########################
-  # Unit tests MFEM Parallel
-  # Cache:   cache-unit-par-${{matrix.sanitizer}}
-  # Upload: upload-unit-par-${{matrix.sanitizer}}
   build-par-unit:
     needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        sanitizer: [asan, ubsan]
-    name: build-par-unit-${{matrix.sanitizer}}
-    steps:
-      - name: Cache
-        if: ${{ env.DEBUG == 'true' }}
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: mfem/build/tests/unit/punit_tests
-          key: cache-unit-par-${{matrix.sanitizer}}
-      - name: Setup
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Restore LLVM libcxx
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LLVM_DIR}}
-          fail-on-cache-miss: true
-          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      - name: Restore Hypre
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.HYPRE_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: Restore Metis
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.METIS_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore LSAN
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LSAN_DIR}}
-          fail-on-cache-miss: true
-          key: cache-lsan-suppression-file
-      - name: Hypre/Metis links
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      - name: Checkout
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
-        with:
-          path: mfem
-          ref: ubsan
-          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Download MFEM
-        uses: actions/download-artifact@v4
-        with:
-          name: upload-mfem-par-${{matrix.sanitizer}}
-          path: mfem/build
-      - name: Ninja Patch
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        working-directory: mfem/build
-        run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Build Unit Tests
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        working-directory: mfem/build
-        run: ninja -v punit_tests
-      - name: Delete object files
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        working-directory: mfem/build/tests/unit
-        run: find . -type f -name '*.o' -delete
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: upload-unit-par-${{matrix.sanitizer}}
-          path: mfem/build/tests/unit/punit_tests
-          if-no-files-found: error
-          retention-days: 1
-          overwrite: false
-
-  ########################################
-  # Unit tests MFEM Parallel (Split & Run)
+    uses: ./.github/workflows/sanitize-test-par-unit-build.yml
   test-par-unit:
     needs: [build-file-lsan, build-llvm-libcxx, build-par-unit]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        sanitizer: [asan, ubsan]
-        tag: [0, 1, 2, 3]
-    name: test-par-unit-${{matrix.sanitizer}}-${{matrix.tag}}
-    steps:
-      - name: Setup
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Restore LLVM libcxx
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LLVM_DIR}}
-          fail-on-cache-miss: true
-          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      - name: Restore Hypre
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.HYPRE_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      - name: Restore Metis
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.METIS_DIR}}
-          fail-on-cache-miss: true
-          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      - name: Restore LSAN file
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.LSAN_DIR}}
-          fail-on-cache-miss: true
-          key: cache-lsan-suppression-file
-      - name: Hypre/Metis links
-        run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: mfem
-          ref: ubsan
-          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      - name: Download MFEM
-        uses: actions/download-artifact@v4
-        with:
-          name: upload-mfem-par-${{matrix.sanitizer}}
-          path: mfem/build
-      - name: Ninja Patch
-        working-directory: mfem/build
-        run: |
-          sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-          sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
-      - name: Cat CTestTestfile.cmake
-        working-directory: mfem/build/tests/unit
-        run: cat CTestTestfile.cmake
-      - name: Download Unit Tests
-        uses: actions/download-artifact@v4
-        with:
-          name: upload-unit-par-${{matrix.sanitizer}}
-          path: mfem/build/tests/unit
-      - name: Copy Data
-        working-directory: mfem/build
-        run: |
-          ninja cmake_object_order_depends_target_unit_tests
-          cp -pR ../tests/unit/data tests/unit
-      - name: Set Permissions
-        run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
-      - name: Split Unit Tests
-        working-directory: mfem/build/tests/unit
-        run: |
-          ./punit_tests --list-test-names-only | tail -n +2 > list-test-names
-          shuf list-test-names -o list-test-names
-          split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
-      - name: Run Unit Tests ${{matrix.tag}}
-        working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -V -R "punit_tests"
+    uses: ./.github/workflows/sanitize-test-par-unit-run.yml
