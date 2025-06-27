@@ -2,12 +2,6 @@ name: build-metis
 
 on:
   workflow_call:
-    inputs:
-      METIS_VER:
-        description: 'METIS version to build'
-        required: false
-        type: string
-        default: '4.0.3'
 
 #############
 # Build METIS
@@ -15,11 +9,16 @@ on:
 jobs:
   build-metis:
     runs-on: ubuntu-latest
-    name: ${{inputs.METIS_VER}}
+    name: 4.0.3
     env:
       METIS_DIR: metis-${{inputs.METIS_VER}}
       METIS_TGZ: metis-${{inputs.METIS_VER}}.tar.gz
     steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/sanitize-setup
+        with:
+          Parallel: 'true'
       - name: Cache
         id: cache
         uses: actions/cache@v4

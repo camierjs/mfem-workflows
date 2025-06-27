@@ -62,25 +62,25 @@ runs:
 
     - name: Env (bis)
       run: |
-        echo LLVM_INC=${{inputs.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
-        echo LLVM_LIB=${{inputs.LLVM_DIR}}/lib >> $GITHUB_ENV
+        echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
+        echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
       shell: bash
 
     - name: Env (ter)
       run: |
-        echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{inputs.LLVM_INC}} -Isystem${{inputs.LLVM_INC}} >> $GITHUB_ENV
-        echo LLVM_LDFLAGS=-L${{inputs.LLVM_LIB}} -lc++abi -Wl,-rpath,${{inputs.LLVM_LIB}} >> $GITHUB_ENV
+        echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
+        echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
       shell: bash
   
     - name: Echo
       run: |
-        echo "[CC] ${{ inputs.CC }}"
-        echo "[CXX] ${{ inputs.CXX }}"
-        echo "[LLVM_DIR] ${{ inputs.LLVM_DIR }}"
-        echo "[LLVM_INC] ${{ inputs.LLVM_INC }}"
-        echo "[LLVM_LIB] ${{ inputs.LLVM_LIB }}"
-        echo "[LLVM_CXXFLAGS] ${{inputs.LLVM_CXXFLAGS}}"
-        echo "[LLVM_LDFLAGS] ${{inputs.LLVM_LDFLAGS}}"
+        echo "[CC] ${{ env.CC }}"
+        echo "[CXX] ${{ env.CXX }}"
+        echo "[LLVM_DIR] ${{ env.LLVM_DIR }}"
+        echo "[LLVM_INC] ${{ env.LLVM_INC }}"
+        echo "[LLVM_LIB] ${{ env.LLVM_LIB }}"
+        echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
+        echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
       shell: bash
   
     - name: Setup (Parallel)
@@ -97,6 +97,8 @@ runs:
         echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
         echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
         echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
+        echo METIS_DIR=metis-${{inputs.METIS_VER}}
+        echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz
       shell: bash
 
     - name: Echo (Parallel)
@@ -105,7 +107,8 @@ runs:
         echo "[MPI] Version: $(mpicxx --showme:version)"
         echo "[MPI] Compile: $(mpicxx --showme:compile)"
         echo "[MPI] Link: $(mpicxx --showme:link)"
-        echo "[HYPRE_DIR] ${{ inputs.HYPRE_DIR }}"
-        echo "[HYPRE_TGZ] ${{ inputs.HYPRE_TGZ }}"
-        echo "[METIS_DIR] ${{ inputs.METIS_DIR }}"
+        echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
+        echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
+        echo "[METIS_DIR] ${{ env.METIS_DIR }}"
+        echo "[METIS_TGZ] ${{ env.METIS_TGZ }}"
       shell: bash

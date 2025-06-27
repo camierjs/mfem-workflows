@@ -2,12 +2,6 @@ name: build-hypre
 
 on:
   workflow_call:
-    inputs:
-      HYPRE_VER:
-        description: 'HYPRE version to build'
-        required: false
-        type: string
-        default: '2.19.0'
 
 #############
 # Build HYPRE
@@ -15,14 +9,13 @@ on:
 jobs:
   build-hypre:
     runs-on: ubuntu-latest
-    name: ${{inputs.HYPRE_VER}}
+    name: 2.19.0
     steps:
       - uses: actions/checkout@v4
       - name: Setup
         uses: ./.github/actions/sanitize-setup
         with:
           Parallel: 'true'
-          HYPRE_VER: ${{inputs.HYPRE_VER}}
       - name: Cache
         id: cache
         uses: actions/cache@v4
