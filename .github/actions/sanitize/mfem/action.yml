@@ -1,0 +1,109 @@
+name: 'MFEM Compilation'
+description: 'MFEM Compilation'
+inputs:
+  key:
+    description: 'Key for the cache/upload'
+    required: true
+    type: string
+  par:
+    description: 'Whether to build for parallel (true/false)'
+    required: false
+    type: boolean
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+      - name: Cache
+        if: ${{ env.DEBUG == 'true' }}
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: mfem/build
+          key: cache-${{inputs.key}}
+      - name: Restore LLVM libcxx
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.LLVM_DIR}}
+          fail-on-cache-miss: true
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      - name: Checkout
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          path: mfem
+          ref: ubsan
+          repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      - name: Restore Hypre
+        if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.HYPRE_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      - name: Restore Metis
+        if: ${{ inputs.parallel && steps.cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{env.METIS_DIR}}
+          fail-on-cache-miss: true
+          key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      - name: Build (Serial)
+        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'false' }}
+        uses: mfem/github-actions/build-mfem@v2.5
+        env:
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}
+        with:
+          mpi: seq
+          mfem-dir: mfem
+          hypre-dir: unused
+          metis-dir: unused
+          os: ${{runner.os}}
+          library-only: true
+          build-system: cmake
+          config-options: >-
+            -GNinja
+            -DMPICXX=${{env.CXX}}
+            -DCMAKE_CXX_STANDARD=17
+            -DMFEM_USE_MEMALLOC=OFF
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=${{env.CXX}}
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+      - name: Build (Parallel)
+        if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.parallel == 'true' }}
+        uses: mfem/github-actions/build-mfem@v2.5
+        env:
+          CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
+          LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        with:
+          mpi: par
+          mfem-dir: mfem
+          os: ${{runner.os}}
+          library-only: true
+          build-system: cmake
+          hypre-dir: ${{env.HYPRE_DIR}}
+          metis-dir: ${{env.METIS_DIR}}
+          config-options: >-
+            -GNinja
+            -DMPICXX=${{env.CXX}}
+            -DCMAKE_CXX_STANDARD=17
+            -DMFEM_USE_MEMALLOC=OFF
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=${{env.CXX}}
+            -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+      - name: Delete object files
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: find . -type f -name '*.o' -delete
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-${{inputs.key}}
+          path: mfem/build
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
