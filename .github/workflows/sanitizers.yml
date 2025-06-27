@@ -939,7 +939,7 @@ jobs:
         working-directory: mfem/build
         run: |
           ninja cmake_object_order_depends_target_unit_tests
-          cp -pR ./tests/unit/data tests/unit
+          cp -pR ../tests/unit/data tests/unit
       - name: Ninja Patch
         working-directory: mfem/build
         run: |
