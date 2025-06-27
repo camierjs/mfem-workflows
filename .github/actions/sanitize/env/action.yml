@@ -70,25 +70,30 @@ runs:
         echo CXX=clang++-${{inputs.CLANG_VER}} >> $GITHUB_ENV
         echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
         echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
+        echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
+        echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz >> $GITHUB_ENV
+        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+      shell: bash
+
+    - name: Env (ter)
+      run: |
         echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
         echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
-        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
-        echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
-        echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz
       shell: bash
   
     - name: Echo
       run: |
+        echo "[LLVM_DIR] ${{ env.LLVM_DIR }}"
+        echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
+        echo "[METIS_DIR] ${{ env.METIS_DIR }}"
         echo "[CC] ${{ env.CC }}"
         echo "[CXX] ${{ env.CXX }}"
-        echo "[LLVM_DIR] ${{ env.LLVM_DIR }}"
         echo "[LLVM_INC] ${{ env.LLVM_INC }}"
         echo "[LLVM_LIB] ${{ env.LLVM_LIB }}"
+        echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
+        echo "[METIS_TGZ] ${{ env.METIS_TGZ }}"
+        echo "[LSAN_OPTIONS] ${{ env.LSAN_OPTIONS }}"
         echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
-        echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
-        echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
-        echo "[METIS_DIR] ${{ env.METIS_DIR }}"
-        echo "[METIS_TGZ] ${{ env.METIS_TGZ }}"
       shell: bash
   

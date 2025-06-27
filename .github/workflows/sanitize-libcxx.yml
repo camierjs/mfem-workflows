@@ -2,12 +2,6 @@ name: build-libcxx
 
 on:
   workflow_call:
-    inputs:
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
 
 #############
 # LLVM libcxx
@@ -29,11 +23,9 @@ jobs:
             llvm_use_sanitizer: "Undefined"
     name: ${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
     steps:
+      - uses: actions/checkout@v4
       - name: Env
-        run: |
-          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
-          echo "LLVM_DIR=${GITHUB_WORKSPACE}/llvm" >> $GITHUB_ENV
+        uses: ./.github/actions/sanitize/env
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
         id: cache
