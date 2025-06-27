@@ -55,6 +55,7 @@ runs:
         echo CLANG_VER=${{inputs.CLANG_VER}} >> $GITHUB_ENV
         echo HYPRE_VER=${{inputs.HYPRE_VER}} >> $GITHUB_ENV
         echo METIS_VER=${{inputs.METIS_VER}} >> $GITHUB_ENV
+      shell: bash
 
     - name: Env (dir)
       run: |
