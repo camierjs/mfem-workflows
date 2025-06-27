@@ -51,6 +51,7 @@ inputs:
 
 runs:
   using: 'composite'
+  shell: bash
   steps:
     - name: Env
       run: |
