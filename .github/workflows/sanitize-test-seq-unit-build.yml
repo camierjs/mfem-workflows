@@ -24,7 +24,6 @@ on:
 # Upload: upload-unit-seq-${{matrix.sanitizer}}
 jobs:
   build-seq-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true

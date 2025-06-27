@@ -24,7 +24,6 @@ on:
 # Upload: upload-miniapps-par-${{matrix.sanitizer}}
 jobs:
   test-par-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
