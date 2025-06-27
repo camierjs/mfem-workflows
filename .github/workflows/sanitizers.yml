@@ -41,7 +41,7 @@ env:
   LSAN_DIR: lsan
   LSAN_FILE: lsan.supp
   CTEST: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
-  DEBUG: false  # if 'true', then use cache to speed up the workflow while debugging
+  DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
   #############################
@@ -1019,14 +1019,14 @@ jobs:
       - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja copy_data copy_miniapps_nurbs_data
-      - name: Download
+      - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja copy_data copy_miniapps_nurbs_data copy_miniapps_meshing_data
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
@@ -1126,10 +1126,10 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      - name: Run Unit Tests (!punit_tests)
+      - name: Run Unit Tests (!(p)unit_tests(_np))
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "^punit_tests$"
+        run: ${{env.CTEST}} tests/unit -E "unit_tests"
       - name: Delete object files
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
@@ -1202,14 +1202,14 @@ jobs:
       - name: Ninja Patch
         working-directory: mfem/build
         run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      - name: Copy Data
-        working-directory: mfem/build
-        run: ninja copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data
-      - name: Download
+      - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
           name: upload-unit-par-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
+      - name: Copy Data
+        working-directory: mfem/build
+        run: ninja copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
