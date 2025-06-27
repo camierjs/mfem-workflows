@@ -1072,7 +1072,8 @@ jobs:
         working-directory: mfem/build
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-          sed -i -e '/^add_test(\[==\[unit_tests/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+          sed -i -e '/^add_test(\[=\[unit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+          
       - name : Cat CTestTestfile.cmake
         working-directory: mfem/build/tests/unit
         run: cat CTestTestfile.cmake
@@ -1098,7 +1099,7 @@ jobs:
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
         # run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
-        run: ${{env.CTEST}} tests/unit -R "punit_tests"
+        run: ${{env.CTEST}} tests/unit -R "unit_tests"
 
   ###################################
   # Tests Unit Miniapps MFEM Parallel
@@ -1325,7 +1326,7 @@ jobs:
         working-directory: mfem/build
         run: |
           sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-          sed -i -e '/^add_test(\[==\[punit_tests/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+          sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
       - name : Cat CTestTestfile.cmake
         working-directory: mfem/build/tests/unit
         run: cat CTestTestfile.cmake
@@ -1336,7 +1337,7 @@ jobs:
           path: mfem/build/tests/unit
       - name: Copy Data
         working-directory: mfem/build
-        run: ninja cmake_object_order_depends_target_unit_tests
+        run: ninja cmake_object_order_depends_target_punit_tests
         # copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
       - name: Copy Unit tests data
         run: cp -pR mfem/tests/unit/data mfem/build/tests/unit
