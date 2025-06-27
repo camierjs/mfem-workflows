@@ -25,7 +25,7 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1p
-          cach-key: check-par-${{matrix.sanitizer}}
+          cache-key: check-par-${{matrix.sanitizer}}
           artifact-name: mfem-par-${{matrix.sanitizer}}
           par: true
 

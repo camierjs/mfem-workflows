@@ -3,7 +3,7 @@ name: 'Restore state'
 description: 'Restore state to be able to run checks, tests'
 
 inputs:
-  cach-key:
+  cache-key:
     description: 'Key for the cache/upload'
     required: true
     type: string
