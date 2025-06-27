@@ -2,26 +2,6 @@ name: test-seq-unit-run
 
 on:
   workflow_call:
-    inputs:
-      DEBUG:
-        type: string
-        default: 'true'
-        required: false
-      LSAN_DIR:
-        description: 'LSAN suppression directory'
-        required: false
-        type: string
-        default: 'lsan'
-      LSAN_FILE:
-        description: 'LSAN suppression file'
-        required: false
-        type: string
-        default: 'lsan.supp'
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
 
 ######################################
 # Unit tests MFEM Serial (Split & Run)
@@ -34,20 +14,10 @@ jobs:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
     name: ${{matrix.sanitizer}}-${{matrix.tag}}
-    env:
-      DEBUG: ${{inputs.DEBUG}}
-      LSAN_DIR: ${{inputs.LSAN_DIR}}
-      LSAN_FILE: ${{inputs.LSAN_FILE}}
-      LLVM_VER: ${{inputs.LLVM_VER}}
     steps:
-      - name: Setup
-        run: |
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-      - name: Setup (LLVM_LIB)
-        run: echo LLVM_LIB=${LLVM_DIR}/lib >> $GITHUB_ENV
-      - name: Setup (LLVM_LDFLAGS)
-        run: echo "LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:

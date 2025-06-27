@@ -2,17 +2,6 @@ name: build-file-lsan
 
 on:
   workflow_call:
-    inputs:
-      LSAN_DIR:
-        description: 'LSAN suppression directory'
-        required: false
-        type: string
-        default: 'lsan'
-      LSAN_FILE:
-        description: 'LSAN suppression file'
-        required: false
-        type: string
-        default: 'lsan.supp'
 
   #######################
   # LSAN suppression file
@@ -21,19 +10,22 @@ on:
 jobs:
   build-file-lsan:
     runs-on: ubuntu-latest
-    name: ${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}}
+    name: lsan.supp
     steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Cache
         id: cache
         uses: actions/cache@v4
         with:
-          path: ${{inputs.LSAN_DIR}}
+          path: ${{env.LSAN_DIR}}
           key: cache-lsan-suppression-file
       - name: Setup
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ${{inputs.LSAN_DIR}}
-          cat << EOF > ${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}}
+          mkdir -p ${{env.LSAN_DIR}}
+          cat << EOF > ${{env.LSAN_DIR}}/${{env.LSAN_FILE}}
           leak:libevent_core-2.1.so
           leak:ompi_mpi_finalize
           leak:ompi_mpi_init

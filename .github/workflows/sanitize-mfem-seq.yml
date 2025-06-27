@@ -2,21 +2,6 @@ name: build-mfem-seq
 
 on:
   workflow_call:
-    inputs:
-      DEBUG:
-        type: string
-        default: 'true'
-        required: false
-      CLANG_VER:
-        description: 'CLANG version to use'
-        required: false
-        type: number
-        default: 18
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
 
 ###################
 # Build MFEM Serial
@@ -39,12 +24,13 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-    env:
-      LLVM_DIR: ${GITHUB_WORKSPACE}/llvm
     name: ${{matrix.sanitizer}}
     steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Cache
-        if: ${{ inputs.DEBUG == 'true' }}
+        if: ${{ env.DEBUG == 'true' }}
         id: cache
         uses: actions/cache@v4
         with:
@@ -56,12 +42,12 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: cache-llvm-${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
-          echo "CC=clang-${{inputs.CLANG_VER}}" >> $GITHUB_ENV
-          echo "CXX=clang++-${{inputs.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CC=clang-${{env.CLANG_VER}}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{env.CLANG_VER}}" >> $GITHUB_ENV
           echo "LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1" >> $GITHUB_ENV
           echo "LLVM_LIB=${{env.LLVM_DIR}}/lib" >> $GITHUB_ENV
       - name: Setup (LLVM)

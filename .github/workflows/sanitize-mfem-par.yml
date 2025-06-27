@@ -2,31 +2,6 @@ name: build-mfem-par
 
 on:
   workflow_call:
-    inputs:
-      DEBUG:
-        type: string
-        default: 'true'
-        required: false
-      CLANG_VER:
-        description: 'CLANG version to use'
-        required: false
-        type: number
-        default: 18
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
-      HYPRE_VER:
-        description: 'HYPRE version to build'
-        required: false
-        type: string
-        default: '2.19.0'
-      METIS_VER:
-        description: 'METIS version to build'
-        required: false
-        type: string
-        default: '4.0.3'
 
 #####################
 # Build MFEM Parallel
@@ -46,12 +21,13 @@ jobs:
           - sanitizer: ubsan
             cxxflags: "-fsanitize=undefined"
             ldflags: "-fsanitize=undefined"
-    env:
-      LLVM_DIR: ${GITHUB_WORKSPACE}/llvm
     name: ${{matrix.sanitizer}}
     steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Cache
-        if: ${{ inputs.DEBUG == 'true' }}
+        if: ${{ env.DEBUG == 'true' }}
         id: cache
         uses: actions/cache@v4
         with:
@@ -63,7 +39,7 @@ jobs:
         with:
           path: ${{env.LLVM_DIR}}
           fail-on-cache-miss: true
-          key: cache-llvm-${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Setup
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
@@ -71,12 +47,12 @@ jobs:
           echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> $GITHUB_ENV
           echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
           echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
-          echo CC=clang-${{inputs.CLANG_VER}} >> $GITHUB_ENV
-          echo CXX=clang++-${{inputs.CLANG_VER}} >> $GITHUB_ENV
+          echo CC=clang-${{env.CLANG_VER}} >> $GITHUB_ENV
+          echo CXX=clang++-${{env.CLANG_VER}} >> $GITHUB_ENV
           echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
           echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{inputs.METIS_VER}} >> $GITHUB_ENV
+          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
+          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
       - name: Setup (LLVM)
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |

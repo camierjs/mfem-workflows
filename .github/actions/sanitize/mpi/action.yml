@@ -15,8 +15,7 @@ runs:
         echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
       shell: bash
 
-    - name: Echo (Parallel)
-      if: ${{ inputs.Parallel == 'true' }}
+    - name: Echo
       run: |
         echo "[MPI] Version: $(mpicxx --showme:version)"
         echo "[MPI] Compile: $(mpicxx --showme:compile)"

@@ -2,26 +2,6 @@ name: test-par-unit-miniapps
 
 on:
   workflow_call:
-    inputs:
-      DEBUG:
-        type: string
-        default: 'true'
-        required: false
-      LSAN_DIR:
-        description: 'LSAN suppression directory'
-        required: false
-        type: string
-        default: 'lsan'
-      LSAN_FILE:
-        description: 'LSAN suppression file'
-        required: false
-        type: string
-        default: 'lsan.supp'
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
 
 ###################################
 # Tests Unit Miniapps MFEM Parallel
@@ -33,19 +13,12 @@ jobs:
       matrix:
         sanitizer: [asan, ubsan]
     name: ${{matrix.sanitizer}}
-    env:
-      DEBUG: ${{inputs.DEBUG}}
-      LSAN_DIR: ${{inputs.LSAN_DIR}}
-      LSAN_FILE: ${{inputs.LSAN_FILE}}
-      LLVM_VER: ${{inputs.LLVM_VER}}
     steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Setup
-        run: |
-          sudo apt-get install openmpi-bin libopenmpi-dev
-          echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
-          echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
-          echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
-          echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
+        uses: ./.github/actions/sanitize/mpi
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:

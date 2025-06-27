@@ -21,7 +21,7 @@ jobs:
             llvm_use_sanitizer: "MemoryWithOrigins"
           - sanitizer: ubsan
             llvm_use_sanitizer: "Undefined"
-    name: ${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+    name: ${{matrix.sanitizer}}
     steps:
       - uses: actions/checkout@v4
       - name: Env
@@ -32,19 +32,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key: cache-llvm-${{inputs.LLVM_VER}}-${{matrix.sanitizer}}
+          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Clone
         if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
         run: >
           git clone --filter=blob:none --depth=1
-          --branch llvmorg-${{inputs.LLVM_VER}}
+          --branch llvmorg-${{env.LLVM_VER}}
           --no-checkout https://github.com/llvm/llvm-project.git llvm-project
       - name: Checkout
         if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}
         working-directory: llvm-project
         run: |
           git sparse-checkout set --cone
-          git checkout llvmorg-${{inputs.LLVM_VER}}
+          git checkout llvmorg-${{env.LLVM_VER}}
           git sparse-checkout set cmake llvm/cmake runtimes libcxx libcxxabi
       - name: Mkdir
         if: ${{ env.DEBUG == 'true' && steps.cache.outputs.cache-hit != 'true' }}

@@ -2,26 +2,6 @@ name: test-par-miniapps
 
 on:
   workflow_call:
-    inputs:
-      DEBUG:
-        type: string
-        default: 'true'
-        required: false
-      LSAN_DIR:
-        description: 'LSAN suppression directory'
-        required: false
-        type: string
-        default: 'lsan'
-      LSAN_FILE:
-        description: 'LSAN suppression file'
-        required: false
-        type: string
-        default: 'lsan.supp'
-      LLVM_VER:
-        description: 'LLVM version to use'
-        required: false
-        type: string
-        default: '19.1.7'
 
 ########################
 # Miniapps MFEM Parallel
@@ -35,12 +15,10 @@ jobs:
       matrix:
         sanitizer: [asan, ubsan]
     name: ${{matrix.sanitizer}}
-    env:
-      DEBUG: ${{inputs.DEBUG}}
-      LSAN_DIR: ${{inputs.LSAN_DIR}}
-      LSAN_FILE: ${{inputs.LSAN_FILE}}
-      LLVM_VER: ${{inputs.LLVM_VER}}
     steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        uses: ./.github/actions/sanitize/env
       - name: Cache
         if: ${{ env.DEBUG == 'true' }}
         id: cache

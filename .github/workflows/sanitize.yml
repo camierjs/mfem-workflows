@@ -1,5 +1,4 @@
 ---
-
 name: "Sanitizers"
 
 permissions:
@@ -17,28 +16,6 @@ on:
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
-
-###############################################################################
-env:
-  CLANG_VER: 18
-  LLVM_VER: 19.1.7    # https://github.com/llvm/llvm-project/releases
-  HYPRE_VER: 2.19.0   # https://github.com/hypre-space/hypre/releases
-  METIS_VER: 4.0.3
-  # https://clang.llvm.org/docs/AddressSanitizer.html
-  ASAN_OPTIONS: "detect_leaks=1,
-                 strict_init_order=1,
-                 strict_string_checks=1,
-                 check_initialization_order=1,
-                 detect_stack_use_after_return=1"
-  # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
-  UBSAN_OPTIONS: "halt_on_error=1, print_stacktrace=1"
-  # https://clang.llvm.org/docs/MemorySanitizer.html
-  MSAN_OPTIONS: "poison_in_dtor=1"
-  LSAN_DIR: lsan
-  LSAN_FILE: lsan.supp
-  CMAKE_GENERATOR: Ninja
-  CTEST: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
-  DEBUG: true  # if 'true', then use cache to speed up the workflow while debugging
 
 jobs:
   #############################################################################
