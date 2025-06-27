@@ -987,7 +987,7 @@ jobs:
     steps:
       - name: Setup
         run: |
-          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit >> $GITHUB_ENV
+          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit/data >> $GITHUB_ENV
           echo LLVM_DIR=${GITHUB_WORKSPACE}/llvm >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
       - name: Setup (LLVM_LIB)
@@ -1044,8 +1044,10 @@ jobs:
       - name: ls Split Files
         working-directory: mfem/build/tests/unit
         run: ls -l
+      - name: Copy Unit tests data 
+        working-directory: mfem/build/tests/unit
+        run: cp -pR ${{env.DATA_DIR}} .
       - name: ls DATA_DIR
-        # working-directory: mfem/build/tests/unit
         run: |
           ls -l
           ls -l mfem
@@ -1058,7 +1060,7 @@ jobs:
           ls -l ${{env.DATA_DIR}}
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${{env.DATA_DIR}}
+        run: ./unit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
 
   ##########################
   # Unit tests MFEM Parallel
@@ -1175,7 +1177,7 @@ jobs:
           echo HYPRE_DIR=hypre-${{env.HYPRE_VER}} >> $GITHUB_ENV
           echo METIS_DIR=metis-${{env.METIS_VER}} >> $GITHUB_ENV
           echo LSAN_OPTIONS="suppressions=${GITHUB_WORKSPACE}/${{env.LSAN_DIR}}/${{env.LSAN_FILE}}" >> $GITHUB_ENV
-          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit >> $GITHUB_ENV
+          echo DATA_DIR=${GITHUB_WORKSPACE}/mfem/tests/unit/data >> $GITHUB_ENV
       - name: Restore LLVM libcxx
         uses: actions/cache/restore@v4
         with:
@@ -1224,6 +1226,9 @@ jobs:
       - name: Copy Data
         working-directory: mfem/build
         run: ninja copy_data copy_miniapps_nurbs_data copy_miniapps_multidomain_data copy_miniapps_meshing_data
+      - name: Copy Unit tests data 
+        working-directory: mfem/build/tests/unit
+        run: cp -pR ${{env.DATA_DIR}} .
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
       - name: Split Unit Tests
@@ -1242,4 +1247,4 @@ jobs:
         run: ls -l
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build/tests/unit
-        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1 --data ${{env.DATA_DIR}}
+        run: ./punit_tests --input-file ./list-test-names-${{matrix.tag}} --min-duration 1
