@@ -103,6 +103,7 @@ runs:
         path: mfem/build
 
     - name: Copy Data
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       working-directory: mfem/build
       run: |
         ninja cmake_object_order_depends_target_unit_tests
