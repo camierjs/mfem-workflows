@@ -16,11 +16,10 @@ jobs:
   build-hypre:
     runs-on: ubuntu-latest
     name: ${{inputs.HYPRE_VER}}
+    env:
+      HYPRE_DIR: hypre-${{inputs.HYPRE_VER}}
+      HYPRE_TGZ: v${{inputs.HYPRE_VER}}.tar.gz
     steps:
-      - name: Env
-        run: |
-          echo "HYPRE_DIR=hypre-${{inputs.HYPRE_VER}}" >> $GITHUB_ENV
-          echo "HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz" >> $GITHUB_ENV
       - name: Cache
         id: cache
         uses: actions/cache@v4
