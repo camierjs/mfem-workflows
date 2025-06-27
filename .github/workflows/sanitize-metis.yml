@@ -10,15 +10,10 @@ jobs:
   build-metis:
     runs-on: ubuntu-latest
     name: 4.0.3
-    env:
-      METIS_DIR: metis-${{inputs.METIS_VER}}
-      METIS_TGZ: metis-${{inputs.METIS_VER}}.tar.gz
     steps:
       - uses: actions/checkout@v4
       - name: Env
         uses: ./.github/actions/sanitize/env
-        with:
-          parallel: 'true'
       - name: Cache
         id: cache
         uses: actions/cache@v4

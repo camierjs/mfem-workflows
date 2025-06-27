@@ -22,3 +22,4 @@ runs:
         echo "[MPI] Compile: $(mpicxx --showme:compile)"
         echo "[MPI] Link: $(mpicxx --showme:link)"
       shell: bash
+      

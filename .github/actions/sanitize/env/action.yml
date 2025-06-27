@@ -43,33 +43,37 @@ inputs:
     type: string
     default: '4.0.3'
 
-  parallel:
-    description: 'Whether to set up for parallel build (true/false)'
-    required: false
-    type: string
-    default: 'false'
-
 runs:
   using: 'composite'
   steps:
-    - name: Env
+    - name: Env (Inputs)
       run: |
-        echo CC=clang-${{inputs.CLANG_VER}} >> $GITHUB_ENV
-        echo CXX=clang++-${{inputs.CLANG_VER}} >> $GITHUB_ENV
+        echo DEBUG=${{inputs.DEBUG}} >> $GITHUB_ENV
+        echo LSAN_DIR=${{inputs.LSAN_DIR}} >> $GITHUB_ENV
+        echo LLVM_VER=${{inputs.LLVM_VER}} >> $GITHUB_ENV
+        echo LSAN_FILE=${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo CLANG_VER=${{inputs.CLANG_VER}} >> $GITHUB_ENV
+        echo HYPRE_VER=${{inputs.HYPRE_VER}} >> $GITHUB_ENV
+        echo METIS_VER=${{inputs.METIS_VER}} >> $GITHUB_ENV
+
+    - name: Env (dir)
+      run: |
         echo LLVM_DIR=${{github.workspace}}/llvm >> $GITHUB_ENV
-        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
+        echo METIS_DIR=metis-${{inputs.METIS_VER}}
       shell: bash
 
     - name: Env (bis)
       run: |
+        echo CC=clang-${{inputs.CLANG_VER}} >> $GITHUB_ENV
+        echo CXX=clang++-${{inputs.CLANG_VER}} >> $GITHUB_ENV
         echo LLVM_INC=${{env.LLVM_DIR}}/include/c++/v1 >> $GITHUB_ENV
         echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
-      shell: bash
-
-    - name: Env (ter)
-      run: |
         echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
         echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
+        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
+        echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz
       shell: bash
   
     - name: Echo
@@ -81,22 +85,9 @@ runs:
         echo "[LLVM_LIB] ${{ env.LLVM_LIB }}"
         echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
         echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
-      shell: bash
-  
-    - name: Env (Parallel)
-      if: ${{ inputs.parallel == 'true' }}
-      run: |
-        echo HYPRE_DIR=hypre-${{inputs.HYPRE_VER}} >> $GITHUB_ENV
-        echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
-        echo METIS_DIR=metis-${{inputs.METIS_VER}}
-        echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz
-      shell: bash
-
-    - name: Echo (Parallel)
-      if: ${{ inputs.parallel == 'true' }}
-      run: |
         echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
         echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
         echo "[METIS_DIR] ${{ env.METIS_DIR }}"
         echo "[METIS_TGZ] ${{ env.METIS_TGZ }}"
       shell: bash
+  
