@@ -18,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
-      - uses: ./.github/actions/sanitize/restore
+      - name: Restore
+        uses: ./.github/actions/sanitize/restore
+        id: cache
         with:
           cache-path: mfem/build/examples/ex1
           cache-key: check-seq-${{matrix.sanitizer}}

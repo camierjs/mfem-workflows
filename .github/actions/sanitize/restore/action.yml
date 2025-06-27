@@ -20,6 +20,11 @@ inputs:
     required: false
     type: boolean
     default: false
+    
+outputs:
+  cache-hit:
+    description: 'Output from a specific step'
+    value: ${{ steps.cache.outputs.cache-hit }}
 
 runs:
   using: 'composite'
