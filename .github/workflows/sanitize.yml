@@ -78,6 +78,8 @@ jobs:
 
   seq-asan:
     needs: [build-libcxx]
+    uses: actions/checkout@v4
+    uses: ./.github/actions/sanitize/config
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       CXXFLAGS: ${{env.ASAN_CXXFLAGS}}
