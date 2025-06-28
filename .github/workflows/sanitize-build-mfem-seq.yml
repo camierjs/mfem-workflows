@@ -2,7 +2,7 @@ name: build-mfem-seq
 on:
   workflow_call:
 jobs:
-  build-mfem-seq-asan:
+  build-mfem-seq:
     runs-on: ubuntu-latest
     strategy:
       matrix:
