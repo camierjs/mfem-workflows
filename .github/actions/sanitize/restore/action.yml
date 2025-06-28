@@ -102,18 +102,19 @@ runs:
         name: upload-${{inputs.artifact-name}}
         path: mfem/build
 
+    - name: Ninja Patch
+      working-directory: mfem/build
+      run: |
+        sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+        sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
+        sed -i -e '/^add_test(\[=\[unit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+        sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+      shell: bash
+
     - name: Copy Data
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       working-directory: mfem/build
       run: |
         ninja cmake_object_order_depends_target_unit_tests
         cp -pR ../tests/unit/data tests/unit
-      shell: bash
-
-    - name: Ninja Patch
-      # if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      working-directory: mfem/build
-      run: |
-        sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-        sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
       shell: bash
