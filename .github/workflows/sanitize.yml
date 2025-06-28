@@ -30,9 +30,42 @@ jobs:
   build-mfem-par:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-build-mfem-par.yml
-  build-mfem-seq:
-    needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-build-mfem-seq.yml
+  # build-mfem-seq:
+  #   needs: [build-libcxx]
+  #   uses: ./.github/workflows/sanitize-build-mfem-seq.yml
+  build-mfem-seq-asan:
+    runs-on: ubuntu-latest
+    name: asan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/mfem
+        env:
+          CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=address -fsanitize-address-use-after-scope
+          LDFLAGS: ${{env.LDFLAGS}} -fsanitize=address
+        with:
+          key: mfem-seq-asan
+  build-mfem-seq-msan:
+    runs-on: ubuntu-latest
+    name: msan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/mfem
+        env:
+          CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor
+          LDFLAGS: ${{env.LDFLAGS}} -fsanitize=memory
+        with:
+          key: mfem-seq-msan
+  build-mfem-seq-ubsan:
+    runs-on: ubuntu-latest
+    name: ubsan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/mfem
+        env:
+          CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=undefined
+          LDFLAGS: ${{env.LDFLAGS}} -fsanitize=undefined
+        with:
+          key: mfem-seq-ubsan
 
   check-par:
     needs: [build-lsan, build-libcxx, build-mfem-par]
