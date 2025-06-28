@@ -6,7 +6,6 @@ on:
   #######################
   # LSAN suppression file
   # strdup required for Hypre 2.19.0
-  # Cache: cache-lsan-suppression-file
 jobs:
   build-file-lsan:
     runs-on: ubuntu-latest

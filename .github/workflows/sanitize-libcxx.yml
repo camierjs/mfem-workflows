@@ -5,8 +5,6 @@ on:
 
 #############
 # LLVM libcxx
-# https://github.com/llvm/llvm-project/tree/main/libcxx
-# Cache: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
 jobs:
   build-llvm-libcxx:
     runs-on: ubuntu-latest

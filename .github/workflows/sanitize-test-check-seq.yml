@@ -5,8 +5,6 @@ on:
 
 ###################
 # Check MFEM Serial
-# Cache:   cache-check-seq-${{matrix.sanitizer}}
-# Upload: upload-check-seq-${{matrix.sanitizer}}
 jobs:
   test-seq-check:
     runs-on: ubuntu-latest

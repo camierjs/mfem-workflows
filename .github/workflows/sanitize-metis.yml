@@ -5,7 +5,6 @@ on:
 
 #############
 # Build METIS
-# Cache: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
 jobs:
   build-metis:
     runs-on: ubuntu-latest

@@ -5,8 +5,6 @@ on:
 
 #####################
 # Build MFEM Parallel
-# Cache:   cache-mfem-par-${{matrix.sanitizer}}
-# Upload: upload-mfem-par-${{matrix.sanitizer}}
 jobs:
   build-par-mfem:
     runs-on: ubuntu-latest

@@ -5,8 +5,6 @@ on:
 
 ######################
 # Miniapps MFEM Serial
-# Cache:   cache-miniapps-seq-${{matrix.sanitizer}}
-# Upload: upload-miniapps-seq-${{matrix.sanitizer}}
 jobs:
   test-seq-miniapps:
 

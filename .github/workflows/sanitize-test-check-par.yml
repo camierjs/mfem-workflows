@@ -5,8 +5,6 @@ on:
 
 #####################
 # Check MFEM Parallel
-# Cache:   cache-check-par-${{matrix.sanitizer}}
-# Upload: upload-check-par-${{matrix.sanitizer}}
 jobs:
   test-par-check:
     runs-on: ubuntu-latest
