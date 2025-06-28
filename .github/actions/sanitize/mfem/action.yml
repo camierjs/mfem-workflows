@@ -1,98 +1,70 @@
 name: 'MFEM Compilation'
-
 description: 'MFEM Compilation'
 
 inputs:
   key:
     description: 'Key for the cache/upload'
-    required: true
-    type: string
+    default: no-key-provided
   par:
     description: 'Whether to build for parallel (true/false)'
-    required: false
-    type: string
     default: false
 
 runs:
   using: 'composite'
   steps:
     - uses: ./.github/actions/sanitize/config
-    - name: Cache
-      if: ${{ env.DEBUG == 'true' }}
-      id: cache
+    - name: DEBUG Cache
+      if: ${{env.DEBUG == 'true'}}
+      id: debug
       uses: actions/cache@v4
       with:
         path: mfem/build
         key: cache-${{inputs.key}}
 
-    - name: Restore LLVM libcxx
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+    - name: LLVM Restore
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.LLVM_DIR}}
         fail-on-cache-miss: true
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
 
-    - name: Setup MPI
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+    - name: MPI Setup
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
       uses: ./.github/actions/sanitize/mpi
 
-    - name: Checkout
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/checkout@v4
-      with:
-        path: mfem
-        ref: ${{ env.BRANCH }}
-        repository: ${{ env.REPOSITORY }}
-
-    - name: Restore Hypre
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+    - name: HYPRE Restore
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.HYPRE_DIR}}
         fail-on-cache-miss: true
         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
 
-    - name: Restore Metis
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+    - name: METIS Restore
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.METIS_DIR}}
         fail-on-cache-miss: true
         key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
 
-    - name: Build (Serial)
-      if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'false' }}
-      uses: mfem/github-actions/build-mfem@v2.5
-      env:
-        CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}}
-        LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}}
+    - name: MFEM Checkout (${{env.REPOSITORY}}/${{env.BRANCH}})
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/checkout@v4
       with:
-        mpi: seq
-        mfem-dir: mfem
-        hypre-dir: unused
-        metis-dir: unused
-        os: ${{runner.os}}
-        library-only: true
-        build-system: cmake
-        config-options: >-
-          -GNinja
-          -DMPICXX=${{env.CXX}}
-          -DCMAKE_CXX_STANDARD=17
-          -DMFEM_USE_MEMALLOC=OFF
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_VERBOSE_MAKEFILE=ON
-          -DCMAKE_CXX_COMPILER=${{env.CXX}}
-          -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
+        path: mfem
+        ref: ${{env.BRANCH}}
+        repository: ${{env.REPOSITORY}}
 
-    - name: Build (Parallel)
-      if: ${{ steps.cache.outputs.cache-hit != 'true' && inputs.par == 'true' }}
+    - name: MFEM Build
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: mfem/github-actions/build-mfem@v2.5
       env:
-        CXXFLAGS: ${{matrix.cxxflags}} ${{env.LLVM_CXXFLAGS}} ${{env.MPI_INC}}
-        LDFLAGS: ${{matrix.ldflags}} ${{env.LLVM_LDFLAGS}} ${{env.MPI_LIB}}
+        CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}}
+        LDFLAGS: ${{matrix.ldflags}} ${{env.LDFLAGS}}
       with:
-        mpi: par
+        mpi: ${{ inputs.par == 'false' && 'seq' || 'par' }}
         mfem-dir: mfem
         os: ${{runner.os}}
         library-only: true
@@ -110,7 +82,7 @@ runs:
           -DCMAKE_CXX_FLAGS_RELEASE='-g -O1 -fno-omit-frame-pointer'
   
     - name: Delete object files
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
       working-directory: mfem/build
       run: find . -type f -name '*.o' -delete
       shell: bash

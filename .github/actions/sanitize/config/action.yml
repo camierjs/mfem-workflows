@@ -4,7 +4,7 @@ description: 'Sets up environment variables for MFEM sanitizer workflow'
 inputs:
   DEBUG:
     description: 'If true, use intermediate caches to speed up the workflow by reusing previous builds.'
-    default: 'true'
+    default: 'false'
 
   REPOSITORY:
     description: 'Repository to checkout, 🔥🔥🔥 Using MFEM/ubsan 🔥🔥🔥'
@@ -102,4 +102,10 @@ runs:
       run: |
         echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
         echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
+      shell: bash
+
+    - name: Env (quater)
+      run: |
+        echo CXXFLAGS=${{env.LLVM_CXXFLAGS}} >> $GITHUB_ENV
+        echo LDFLAGS=${{env.LLVM_LDFLAGS}} >> $GITHUB_ENV
       shell: bash

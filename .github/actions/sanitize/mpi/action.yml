@@ -14,3 +14,9 @@ runs:
         echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
         echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
       shell: bash
+
+    - name: Env (bis)
+      run: |
+        echo CXXFLAGS=${{env.CXXFLAGS}} ${{env.MPI_INC}} >> $GITHUB_ENV
+        echo LDFLAGS=${{env.LDFLAGS}} ${{env.MPI_LIB}} >> $GITHUB_ENV
+      shell: bash
