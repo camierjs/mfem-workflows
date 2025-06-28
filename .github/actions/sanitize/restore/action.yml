@@ -36,6 +36,18 @@ inputs:
     required: false
     type: string
     default: false
+
+  ref:
+    default: ubsan
+    description: 'Git reference to use for checkout'
+    required: false
+    type: string
+
+  repository:
+    default: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+    description: 'Repository to checkout'
+    required: false
+    type: string
     
 outputs:
   cache-hit:
@@ -99,8 +111,8 @@ runs:
       uses: actions/checkout@v4
       with:
         path: mfem
-        ref: ubsan
-        repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+        ref: ${{inputs.ref}}
+        repository: ${{inputs.repository}}
 
     - name: Download artifact
       uses: actions/download-artifact@v4
