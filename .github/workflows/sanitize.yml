@@ -55,10 +55,6 @@ jobs:
     needs: [build-lsan, build-libcxx, check-seq]
     uses: ./.github/workflows/sanitize-miniapps-seq.yml
 
-  all-in-one:
-    needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one-seq.yml
-
   tests-miniapps-par:
     needs: [build-lsan, build-libcxx, check-par]
     uses: ./.github/workflows/sanitize-tests-miniapps-par.yml
@@ -79,3 +75,7 @@ jobs:
   tests-unit-run-seq:
     needs: [build-lsan, build-libcxx, tests-unit-build-seq]
     uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
+
+  all-in-one:
+    needs: [build-libcxx]
+    uses: ./.github/workflows/sanitize-all-in-one-seq.yml

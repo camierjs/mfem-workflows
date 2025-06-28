@@ -7,7 +7,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    name: build-seq
+    name: build-one
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/mfem
@@ -15,11 +15,11 @@ jobs:
           CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=address -fsanitize-address-use-after-scope
           LDFLAGS: ${{env.LDFLAGS}} -fsanitize=address
         with:
-          key: mfem-one-seq
+          key: mfem-one
 
   check:
-    name: check-seq
-    needs: [build-seq]
+    name: check-one
+    needs: [build-one]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +28,8 @@ jobs:
         uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1
-          cache-key: check-one-seq
-          artifact-name: check-one-seq
+          cache-key: check-one
+          artifact-name: mfem-one
           par: false
       - name: MFEM Check
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
@@ -37,8 +37,8 @@ jobs:
         run: ninja -v check
 
   examples:
-    name: examples-seq
-    needs: [check-seq]
+    name: examples-one
+    needs: [check-one]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,8 +47,8 @@ jobs:
         uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1
-          cache-key: examples-one-seq
-          artifact-name: examples-one-seq
+          cache-key: examples-one
+          artifact-name: mfem-one
       - name: Build Examples
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
@@ -57,3 +57,98 @@ jobs:
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
+
+  miniapps:
+    name: miniapps-one
+    needs: [check-one]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore
+        id: restore
+        uses: ./.github/actions/sanitize/restore
+        with:
+          cache-path: mfem/build/miniapps/meshing/minimal-surface
+          cache-key: miniapps-one
+          artifact-name: mfem-one
+      - name: Build Miniapps
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ninja -v miniapps
+      - name: Test Miniapps
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} miniapps
+
+  tests-miniapps:
+    name: tests-miniapps-one
+    needs: [check-one]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/restore
+        with:
+          artifact-name: mfem-one
+      - name: Build Tests Unit Miniapps
+        working-directory: mfem/build
+        run: ninja -v tests/unit/all
+      - name: Run Tests Unit Miniapps
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"
+
+  tests-unit-build:  
+    runs-on: ubuntu-latest
+    name: tests-unit-build-one
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore
+        id: restore
+        uses: ./.github/actions/sanitize/restore
+        with:
+          cache-path: mfem/build/tests/unit/unit_tests
+          cache-key: unit-one
+          artifact-name: mfem-one
+      - name: Build Unit Tests
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ninja -v unit_tests
+      - name: Delete object files
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build/tests/unit
+        run: find . -type f -name '*.o' -delete
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-one
+          path: mfem/build/tests/unit/unit_tests
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+
+  test-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tag: [0, 1, 2, 3]
+    name: test-unit-one-${{matrix.tag}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/restore
+        with:
+          artifact-name: mfem-one
+      - name: Restore Unit Tests
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-one
+          path: mfem/build/tests/unit
+      - name: Split Unit Tests
+        working-directory: mfem/build/tests/unit
+        run: |
+          chmod 755 unit_tests
+          ./unit_tests --list-test-names-only | tail -n +2 > list-test-names
+          shuf list-test-names -o list-test-names
+          split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
+      - name: Run Unit Tests ${{matrix.tag}}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -R "unit_tests"
+
