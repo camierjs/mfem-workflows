@@ -1,0 +1,86 @@
+name: test-seq-unit-build
+
+on:
+  workflow_call:
+
+##################################
+# Unit tests MFEM Serial (Compile)
+jobs:
+  build-seq-unit:  
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        sanitizer: [asan, msan, ubsan]
+
+    name: ${{matrix.sanitizer}}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/sanitize/env
+
+      - name: Restore
+        id: restore
+        uses: ./.github/actions/sanitize/restore
+        with:
+          cache-path: mfem/build/tests/unit/unit_tests
+          cache-key: unit-seq-${{matrix.sanitizer}}
+          artifact-name: mfem-seq-${{matrix.sanitizer}}
+
+      # - name: Cache
+      #   if: ${{ env.DEBUG == 'true' }}
+      #   id: cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: mfem/build/tests/unit/unit_tests
+      #     key: cache-unit-seq-${{matrix.sanitizer}}
+      # - name: Restore LLVM libcxx
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LLVM_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+      # - name: Restore LSAN file
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LSAN_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-lsan-suppression-file
+      # - name: Checkout
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: mfem
+      #     ref: ubsan
+      #     repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      # - name: Download MFEM
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: upload-mfem-seq-${{matrix.sanitizer}}
+      #     path: mfem/build
+      # - name: Ninja Patch
+      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      #   working-directory: mfem/build
+      #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+
+      - name: Build Unit Tests (unit_tests)
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ninja -v unit_tests
+
+      - name: Delete object files
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build/tests/unit
+        run: find . -type f -name '*.o' -delete
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-unit-seq-${{matrix.sanitizer}}
+          path: mfem/build/tests/unit/unit_tests
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false

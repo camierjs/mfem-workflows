@@ -5,8 +5,6 @@ on:
 
 ########################
 # Examples MFEM Parallel
-# Cache:   cache-examples-par-${{matrix.sanitizer}}
-# Upload: upload-examples-par-${{matrix.sanitizer}}
 jobs:
   test-par-examples:
     runs-on: ubuntu-latest
@@ -23,7 +21,7 @@ jobs:
       - uses: ./.github/actions/sanitize/env
       
       - name: Restore
-        id: cache
+        id: restore
         uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1p
@@ -32,11 +30,11 @@ jobs:
           par: true
 
       - name: Build Examples
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v examples
         
       - name: Test Examples
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ${{env.CTEST}} examples

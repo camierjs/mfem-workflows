@@ -78,16 +78,16 @@ jobs:
 
   #############################################################################
   # Unit tests MFEM Serial/Parallel (Compile, Split & Run)
-  # build-seq-unit:
-  #   needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-  #   uses: ./.github/workflows/sanitize-test-seq-unit-build.yml
-  # test-seq-unit:
-  #   needs: [build-file-lsan, build-llvm-libcxx, build-seq-unit]
-  #   uses: ./.github/workflows/sanitize-test-seq-unit-run.yml
+  build-seq-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
+    uses: ./.github/workflows/sanitize-test-unit-build-seq.yml
+  test-seq-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, build-seq-unit]
+    uses: ./.github/workflows/sanitize-test-unit-run-seq.yml
 
-  # build-par-unit:
-  #   needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-  #   uses: ./.github/workflows/sanitize-test-par-unit-build.yml
-  # test-par-unit:
-  #   needs: [build-file-lsan, build-llvm-libcxx, build-par-unit]
-  #   uses: ./.github/workflows/sanitize-test-par-unit-run.yml
+  build-par-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
+    uses: ./.github/workflows/sanitize-test-unit-build-par.yml
+  test-par-unit:
+    needs: [build-file-lsan, build-llvm-libcxx, build-par-unit]
+    uses: ./.github/workflows/sanitize-test-unit-run-par.yml

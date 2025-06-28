@@ -12,7 +12,9 @@ jobs:
       fail-fast: true
       matrix:
         sanitizer: [asan, ubsan]
+
     name: ${{matrix.sanitizer}}
+    
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
@@ -24,54 +26,6 @@ jobs:
           par: true
           no-cache: true
           artifact-name: mfem-par-${{matrix.sanitizer}}
-
-      # - name: Restore LLVM libcxx
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.LLVM_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      # - name: Restore Hypre
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.HYPRE_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
-      # - name: Restore Metis
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.METIS_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
-      # - name: Restore LSAN
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.LSAN_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: cache-lsan-suppression-file
-      # - name: Hypre/Metis links
-      #   run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      # - name: Checkout
-      #   uses: actions/checkout@v4
-      #   with:
-      #     path: mfem
-      #     ref: ubsan
-      #     repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      # - name: Download MFEM
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: upload-mfem-par-${{matrix.sanitizer}}
-      #     path: mfem/build
-      # - name: Copy Data
-      #   working-directory: mfem/build
-      #   run: |
-      #     ninja cmake_object_order_depends_target_unit_tests
-      #     cp -pR ../tests/unit/data tests/unit
-      # - name: Ninja Patch
-      #   working-directory: mfem/build
-      #   run: |
-      #     sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
-      #     sed -i -e '/build tests\/unit\/all:/ s/tests\/unit\/[^ ]*unit_tests[^ ]*//g' build.ninja
 
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build

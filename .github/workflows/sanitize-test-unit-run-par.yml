@@ -1,0 +1,102 @@
+name: test-par-unit-run
+
+on:
+  workflow_call:
+
+########################################
+# Unit tests MFEM Parallel (Split & Run)
+jobs:
+  test-par-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        san: [asan, ubsan]
+        tag: [0, 1, 2, 3]
+
+    name: ${{matrix.san}}-${{matrix.tag}}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/sanitize/env
+
+      - name: Restore
+        id: restore
+        uses: ./.github/actions/sanitize/restore
+        with:
+          par: true
+          no-cache: true
+          artifact-name: mfem-par-${{matrix.sanitizer}}
+      
+      # - name: Restore LLVM libcxx
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LLVM_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.san}}
+      # - name: Restore Hypre
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.HYPRE_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+      # - name: Restore Metis
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.METIS_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+      # - name: Restore LSAN file
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: ${{env.LSAN_DIR}}
+      #     fail-on-cache-miss: true
+      #     key: cache-lsan-suppression-file
+      # - name: Hypre/Metis links
+      #   run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      # - name: Checkout
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: mfem
+      #     ref: ubsan
+      #     repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+      # - name: Download MFEM
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: upload-mfem-par-${{matrix.san}}
+      #     path: mfem/build
+      # - name: Ninja Patch
+      #   working-directory: mfem/build
+      #   run: |
+      #     sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
+      #     sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
+      # - name: Cat CTestTestfile.cmake
+      #   working-directory: mfem/build/tests/unit
+      #   run: cat CTestTestfile.cmake
+
+      - name: Download Unit Tests
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-unit-par-${{matrix.san}}
+          path: mfem/build/tests/unit
+
+      # - name: Copy Data
+      #   working-directory: mfem/build
+      #   run: |
+      #     ninja cmake_object_order_depends_target_unit_tests
+      #     cp -pR ../tests/unit/data tests/unit
+
+      - name: Set Permissions
+        run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
+
+      - name: Split Unit Tests
+        working-directory: mfem/build/tests/unit
+        run: |
+          ./punit_tests --list-test-names-only | tail -n +2 > list-test-names
+          shuf list-test-names -o list-test-names
+          split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
+          
+      - name: Run Unit Tests ${{matrix.tag}}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -V -R "punit_tests"
