@@ -71,7 +71,7 @@ jobs:
 
   tests-unit-run-par:
     needs: [build-lsan, build-libcxx, tests-unit-build-par]
-    uses: ./.github/workflows/sanitize-test-unit-run-par.yml
+    uses: ./.github/workflows/sanitize-tests-unit-run-par.yml
   tests-unit-run-seq:
     needs: [build-lsan, build-libcxx, tests-unit-build-seq]
     uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
