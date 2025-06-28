@@ -8,6 +8,7 @@ on:
         required: true
         default: asan
         type: string
+      # key could be the concatenation of the sanitizer and the parallelism
       key:
         description: 'Key for build, checks, examples, miniapps & tests caches'
         required: true
