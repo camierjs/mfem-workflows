@@ -76,17 +76,41 @@ jobs:
   #   needs: [build-lsan, build-libcxx, tests-unit-build-seq]
   #   uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
 
+  # Serial sanitizers
   seq-asan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       sanitizer: asan
       key: seq-asan
+  
+  seq-msan:
+    needs: [build-libcxx]
+    uses: ./.github/workflows/sanitize-all-in-one.yml
+    with:
+      sanitizer: msan
+      key: seq-msan
+  
+  seq-ubsan:
+    needs: [build-libcxx]
+    uses: ./.github/workflows/sanitize-all-in-one.yml
+    with:
+      sanitizer: ubsan
+      key: seq-ubsan
 
+  # Parallel sanitizers
   par-asan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       sanitizer: asan
       key: par-asan
+      par: true
+  
+  par-msan:
+    needs: [build-libcxx, build-hypre, build-metis]
+    uses: ./.github/workflows/sanitize-all-in-one.yml
+    with:
+      sanitizer: msan
+      key: par-msan
       par: true
