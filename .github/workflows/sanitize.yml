@@ -34,7 +34,7 @@ jobs:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-build-mfem-seq.yml
 
-  all-in-one-asan-seq:
+  all-in-one-seq:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-all-in-one-seq.yml
 
