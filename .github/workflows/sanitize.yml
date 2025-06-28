@@ -82,3 +82,11 @@ jobs:
     with:
       sanitizer: asan
       key: seq-asan
+
+  par-asan:
+    needs: [build-libcxx, build-hypre, build-metis]
+    uses: ./.github/workflows/sanitize-all-in-one.yml
+    with:
+      sanitizer: asan
+      key: par-asan
+      par: true
