@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         sanitizer: [asan, ubsan]
-    name: ${{matrix.sanitizer}}
+    name: ${{matrix.sanitizer}} 
     steps:
       - uses: actions/checkout@v4
       - name: Restore

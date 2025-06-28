@@ -17,76 +17,61 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  #############################################################################
+  
   build-hypre:
-    uses: ./.github/workflows/sanitize/hypre.yml  # @${{github.sha}}
-
+    uses: ./.github/workflows/sanitize-build-hypre.yml
   build-metis:
-    uses: ./.github/workflows/sanitize-metis.yml
+    uses: ./.github/workflows/sanitize-build-metis.yml
+  build-lsan:
+    uses: ./.github/workflows/sanitize-build-lsan.yml
+  build-libcxx:
+    uses: ./.github/workflows/sanitize-build-libcxx.yml
 
-  build-file-lsan:
-    uses: ./.github/workflows/sanitize-lsan.yml
+  build-mfem-par:
+    needs: [build-libcxx, build-hypre, build-metis]
+    uses: ./.github/workflows/sanitize-build-mfem-par.yml
+  build-mfem-seq:
+    needs: [build-libcxx]
+    uses: ./.github/workflows/sanitize-build-mfem-seq.yml
 
-  build-llvm-libcxx:
-    uses: ./.github/workflows/sanitize-libcxx.yml
+  check-par:
+    needs: [build-lsan, build-libcxx, build-mfem-par]
+    uses: ./.github/workflows/sanitize-check-par.yml
+  check-seq:
+    needs: [build-lsan, build-libcxx, build-mfem-seq]
+    uses: ./.github/workflows/sanitize-check-seq.yml
 
-  #############################################################################
-  # Build MFEM Serial/Parallel
-  build-seq-mfem:
-    needs: [build-llvm-libcxx]
-    uses: ./.github/workflows/sanitize-mfem-seq.yml
-  build-par-mfem:
-    needs: [build-llvm-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize-mfem-par.yml
+  examples-par:
+    needs: [build-lsan, build-libcxx, check-par]
+    uses: ./.github/workflows/sanitize-examples-par.yml
+  examples-seq:
+    needs: [build-lsan, build-libcxx, check-seq]
+    uses: ./.github/workflows/sanitize-examples-seq.yml
 
-  #############################################################################
-  # Check MFEM Serial/Parallel
-  test-seq-check:
-    needs: [build-file-lsan, build-llvm-libcxx, build-seq-mfem]
-    uses: ./.github/workflows/sanitize-test-check-seq.yml
-  test-par-check:
-    needs: [build-file-lsan, build-llvm-libcxx, build-par-mfem]
-    uses: ./.github/workflows/sanitize-test-check-par.yml
+  miniapps-par:
+    needs: [build-lsan, build-libcxx, check-par]
+    uses: ./.github/workflows/sanitize-miniapps-par.yml
+  miniapps-seq:
+    needs: [build-lsan, build-libcxx, check-seq]
+    uses: ./.github/workflows/sanitize-miniapps-seq.yml
 
-  #############################################################################
-  # Examples MFEM Serial/Parallel
-  test-seq-examples:
-    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-    uses: ./.github/workflows/sanitize-test-examples-seq.yml
-  test-par-examples:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    uses: ./.github/workflows/sanitize-test-examples-par.yml
+  tests-miniapps-par:
+    needs: [build-lsan, build-libcxx, check-par]
+    uses: ./.github/workflows/sanitize-tests-miniapps-par.yml
+  tests-miniapps-seq:
+    needs: [build-lsan, build-libcxx, check-seq]
+    uses: ./.github/workflows/sanitize-tests-miniapps-seq.yml
 
-  #############################################################################
-  # Miniapps MFEM Serial/Parallel
-  test-seq-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-    uses: ./.github/workflows/sanitize-test-miniapps-seq.yml
-  test-par-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    uses: ./.github/workflows/sanitize-test-miniapps-par.yml
+  tests-unit-build-par:
+    needs: [build-lsan, build-libcxx, check-par]
+    uses: ./.github/workflows/sanitize-tests-unit-build-par.yml
+  tests-unit-build-seq:
+    needs: [build-lsan, build-libcxx, check-seq]
+    uses: ./.github/workflows/sanitize-tests-unit-build-seq.yml
 
-  #############################################################################
-  # Tests Unit Miniapps MFEM Serial/Parallel
-  test-seq-unit-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-    uses: ./.github/workflows/sanitize-test-unit-miniapps-seq.yml
-  test-par-unit-miniapps:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    uses: ./.github/workflows/sanitize-test-unit-miniapps-par.yml
-
-  #############################################################################
-  # Unit tests MFEM Serial/Parallel (Compile, Split & Run)
-  build-seq-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, test-seq-check]
-    uses: ./.github/workflows/sanitize-test-unit-build-seq.yml
-  test-seq-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, build-seq-unit]
-    uses: ./.github/workflows/sanitize-test-unit-run-seq.yml
-
-  build-par-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, test-par-check]
-    uses: ./.github/workflows/sanitize-test-unit-build-par.yml
-  test-par-unit:
-    needs: [build-file-lsan, build-llvm-libcxx, build-par-unit]
+  tests-unit-run-par:
+    needs: [build-lsan, build-libcxx, tests-unit-build-par]
     uses: ./.github/workflows/sanitize-test-unit-run-par.yml
+  tests-unit-run-seq:
+    needs: [build-lsan, build-libcxx, tests-unit-build-seq]
+    uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
