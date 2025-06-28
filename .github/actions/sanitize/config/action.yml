@@ -4,7 +4,7 @@ description: 'Sets up environment variables for MFEM sanitizer workflow'
 inputs:
   DEBUG:
     description: 'If true, use intermediate caches to speed up the workflow by reusing previous builds.'
-    default: 'false'
+    default: true
 
   REPOSITORY:
     description: 'Repository to checkout, 🔥🔥🔥 Using MFEM/ubsan 🔥🔥🔥'

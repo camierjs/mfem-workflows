@@ -4,7 +4,7 @@ description: 'MFEM Compilation'
 inputs:
   key:
     description: 'Key for the cache/upload'
-    default: no-key-provided
+    default: none
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
@@ -21,41 +21,43 @@ runs:
         path: mfem/build
         key: cache-${{inputs.key}}
 
-    - name: LLVM Restore
-      if: ${{steps.debug.outputs.cache-hit != 'true'}}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.LLVM_DIR}}
-        fail-on-cache-miss: true
-        key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+    - uses: ./.github/actions/sanitize/setup
 
-    - name: MPI Setup
-      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
-      uses: ./.github/actions/sanitize/mpi
+    # - name: LLVM Restore
+    #   if: ${{steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.LLVM_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
 
-    - name: HYPRE Restore
-      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.HYPRE_DIR}}
-        fail-on-cache-miss: true
-        key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+    # - name: MPI Setup
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: ./.github/actions/sanitize/mpi
 
-    - name: METIS Restore
-      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.METIS_DIR}}
-        fail-on-cache-miss: true
-        key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+    # - name: HYPRE Restore
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.HYPRE_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
 
-    - name: MFEM Checkout (${{env.REPOSITORY}}/${{env.BRANCH}})
-      if: ${{steps.debug.outputs.cache-hit != 'true'}}
-      uses: actions/checkout@v4
-      with:
-        path: mfem
-        ref: ${{env.BRANCH}}
-        repository: ${{env.REPOSITORY}}
+    # - name: METIS Restore
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.METIS_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+
+    # - name: MFEM Checkout (${{env.REPOSITORY}}/${{env.BRANCH}})
+    #   if: ${{steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/checkout@v4
+    #   with:
+    #     path: mfem
+    #     ref: ${{env.BRANCH}}
+    #     repository: ${{env.REPOSITORY}}
 
     - name: MFEM Build
       if: ${{steps.debug.outputs.cache-hit != 'true'}}

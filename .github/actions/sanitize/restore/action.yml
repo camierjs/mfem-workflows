@@ -1,98 +1,94 @@
 name: 'Restore state'
-
 description: 'Restore state to be able to run checks, tests'
 
 inputs:
-
   cache-key:
-    description: 'Key for the cache/upload'
-    required: true
+    description: 'Key for the cache/upload, can be left to none if not needed'
+    default: none
 
   cache-path:
     description: 'path to what needs to be restored'
-    required: true
+    default: none
 
   artifact-name:
     description: 'Name of the artifact to download'
-    required: true
+    default: none
 
   artifact-path:
-    default: mfem/build
     description: 'path to what needs to be restored'
+    default: mfem/build
 
   par:
-    default: false
     description: 'Whether to build for parallel (true/false)'
-
-  no-cache:
     default: false
-    description: 'Whether to skip cache (true/false)'
     
 outputs:
   cache-hit:
     description: 'Output from a specific step'
-    value: ${{ steps.cache.outputs.cache-hit }}
+    value: ${{steps.debug.outputs.cache-hit}}
 
 runs:
   using: 'composite'
   steps:
     - uses: ./.github/actions/sanitize/config
     - name: Cache
-      if: ${{ env.DEBUG == 'true' && inputs.no-cache != 'true' }}
-      id: cache
+      if: ${{env.DEBUG == 'true' && inputs.cache-key != 'none'}}
+      id: debug
       uses: actions/cache@v4
       with:
         path: ${{inputs.cache-path}}
         key: cache-${{inputs.cache-key}}
 
-    - name: Restore LLVM libcxx
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.LLVM_DIR}}
-        fail-on-cache-miss: true
-        key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-  
-    - name: Setup MPI
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      uses: ./.github/actions/sanitize/mpi
+    - uses: ./.github/actions/sanitize/setup
 
-    - name: Restore Hypre
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.HYPRE_DIR}}
-        fail-on-cache-miss: true
-        key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+    # - name: LLVM Restore
+    #   if: ${{steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.LLVM_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
   
-    - name: Restore Metis
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.METIS_DIR}}
-        fail-on-cache-miss: true
-        key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+    # - name: MPI Setup
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: ./.github/actions/sanitize/mpi
 
-    - name: Restore LSAN
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{env.LSAN_DIR}}
-        fail-on-cache-miss: true
-        key: cache-lsan-suppression-file
+    # - name: HYPRE Restore
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.HYPRE_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
   
-    - name: Hypre/Metis links
-      if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
-      shell: bash
+    # - name: METIS Restore
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.METIS_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
 
-    - name: Checkout
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      uses: actions/checkout@v4
-      with:
-        path: mfem
-        ref: ${{ env.BRANCH }}
-        repository: ${{ env.REPOSITORY }}
+    # - name: LSAN Restore
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: ${{env.LSAN_DIR}}
+    #     fail-on-cache-miss: true
+    #     key: cache-lsan-suppression-file
+  
+    # - name: Hypre/Metis links
+    #   if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+    #   run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+    #   shell: bash
+
+    # - name: MFEM Checkout
+    #   if: ${{steps.debug.outputs.cache-hit != 'true'}}
+    #   uses: actions/checkout@v4
+    #   with:
+    #     path: mfem
+    #     ref: ${{env.BRANCH}}
+    #     repository: ${{env.REPOSITORY}}
 
     - name: Download artifact
       uses: actions/download-artifact@v4
@@ -109,7 +105,7 @@ runs:
       shell: bash
 
     - name: Copy Data
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
       working-directory: mfem/build
       run: |
         ninja cmake_object_order_depends_target_unit_tests

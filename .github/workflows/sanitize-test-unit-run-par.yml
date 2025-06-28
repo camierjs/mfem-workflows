@@ -20,7 +20,6 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           par: true
-          no-cache: true
           artifact-name: mfem-par-${{matrix.sanitizer}}
 
       - name: Restore Unit Tests

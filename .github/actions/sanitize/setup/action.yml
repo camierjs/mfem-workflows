@@ -1,0 +1,59 @@
+name: 'Setup state'
+description: 'Sets up the state to be able to run build & run'
+
+inputs:
+  par:
+    description: 'Whether to build for parallel (true/false)'
+    default: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: LLVM Restore
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{env.LLVM_DIR}}
+        fail-on-cache-miss: true
+        key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+  
+    - name: MPI Setup
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+      uses: ./.github/actions/sanitize/mpi
+
+    - name: HYPRE Restore
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{env.HYPRE_DIR}}
+        fail-on-cache-miss: true
+        key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
+  
+    - name: METIS Restore
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{env.METIS_DIR}}
+        fail-on-cache-miss: true
+        key: ${{runner.os}}-build-${{env.METIS_DIR}}-v2.5
+
+    - name: Hypre/Metis links
+      if: ${{inputs.par == 'true' && steps.debug.outputs.cache-hit != 'true'}}
+      run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
+      shell: bash
+
+    - name: LSAN Restore
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{env.LSAN_DIR}}
+        fail-on-cache-miss: true
+        key: cache-lsan-suppression-file  
+
+    - name: MFEM Checkout (${{env.REPOSITORY}}/${{env.BRANCH}})
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: actions/checkout@v4
+      with:
+        path: mfem
+        ref: ${{env.BRANCH}}
+        repository: ${{env.REPOSITORY}}
