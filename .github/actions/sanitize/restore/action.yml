@@ -39,7 +39,11 @@ runs:
         path: ${{inputs.cache-path}}
         key: cache-${{inputs.cache-key}}
 
-    - uses: ./.github/actions/sanitize/setup
+    - name: Setup
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: ./.github/actions/sanitize/setup
+      with:
+        par: ${{inputs.par}}
 
     # - name: LLVM Restore
     #   if: ${{steps.debug.outputs.cache-hit != 'true'}}

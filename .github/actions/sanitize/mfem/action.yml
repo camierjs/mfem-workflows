@@ -5,6 +5,11 @@ inputs:
   key:
     description: 'Key for the cache/upload'
     default: none
+
+  path:
+    description: 'path to what needs to be cached'
+    default: mfem/build
+
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
@@ -18,10 +23,14 @@ runs:
       id: debug
       uses: actions/cache@v4
       with:
-        path: mfem/build
+        path: ${{inputs.path}} # mfem/build usually
         key: cache-${{inputs.key}}
 
-    - uses: ./.github/actions/sanitize/setup
+    - name: Setup
+      if: ${{steps.debug.outputs.cache-hit != 'true'}}
+      uses: ./.github/actions/sanitize/setup
+      with:
+        par: ${{inputs.par}}
 
     # - name: LLVM Restore
     #   if: ${{steps.debug.outputs.cache-hit != 'true'}}
