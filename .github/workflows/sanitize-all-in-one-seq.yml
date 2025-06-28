@@ -15,7 +15,7 @@ jobs:
           key: mfem-seq-asan
 
   check-seq:
-    needs: [1-build-seq]
+    needs: [build-seq]
     name: check-seq
     runs-on: ubuntu-latest
     steps:
