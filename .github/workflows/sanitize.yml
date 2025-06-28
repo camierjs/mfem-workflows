@@ -82,4 +82,3 @@ jobs:
     with:
       sanitizer: asan
       key: seq-asan
-      par: false

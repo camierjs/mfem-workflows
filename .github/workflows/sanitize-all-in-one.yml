@@ -3,21 +3,19 @@ name: all-in-one
 on:
   workflow_call:
     inputs:
-      CXXFLAGS:
-        description: 'Additional CXX flags'
-        default: ''
-      LDFLAGS:
-        description: 'Additional linker flags'
-        default: ''
+      sanitizer:
+        description: 'Sanitizer to use (asan, msan, ubsan)'
+        required: true
+        default: asan
+        type: string
       key:
         description: 'Key for build, checks, examples, miniapps & tests caches'
-        default: ''
+        required: true
+        type: string
       par:
         description: 'Whether to build for parallel (true/false)'
         default: false
-      sanitizer:
-        description: 'Sanitizer to use (asan, msan, ubsan)'
-        default: 'asan'
+        type: boolean
 
 jobs:
 
