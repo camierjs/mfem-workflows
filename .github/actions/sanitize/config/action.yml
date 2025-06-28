@@ -1,68 +1,43 @@
-name: 'Setup Environment'
+name: 'Sanitizer Config'
 description: 'Sets up environment variables for MFEM sanitizer workflow'
-inputs:
 
-  # if 'true', then use cache to speed up the workflow while debugging
+inputs:
   DEBUG:
-    type: string
+    description: 'If true, use intermediate caches to speed up the workflow by reusing previous builds.'
     default: 'true'
 
-  # 🔥🔥🔥 Using MFEM/ubsan repository
   REPOSITORY:
-    default: mfem/mfem  
-    description: 'Repository to checkout'
+    description: 'Repository to checkout, 🔥🔥🔥 Using MFEM/ubsan 🔥🔥🔥'
+    default: mfem/mfem 
+ 
   BRANCH:
-    default: ubsan
     description: 'Branch to checkout'
-
-  LSAN_DIR:
-    description: 'LSAN suppression directory'
-    required: false
-    type: string
-    default: 'lsan'
-
-  LSAN_FILE:
-    description: 'LSAN suppression file'
-    required: false
-    type: string
-    default: 'lsan.supp'
+    default: ubsan
 
   CLANG_VER:
     description: 'CLANG version to use'
-    required: false
-    type: number
     default: 18
 
   # https://github.com/llvm/llvm-project/releases
   LLVM_VER:
     description: 'LLVM version to use'
-    required: false
-    type: string
-    default: '19.1.7'
+    default: 19.1.7
 
   # https://github.com/hypre-space/hypre/releases
   HYPRE_VER:
-    description: 'HYPRE version to build'
-    required: false
-    type: string
-    default: '2.19.0'
+    description: 'HYPRE version to use'
+    default: 2.19.0
 
   METIS_VER:
-    description: 'METIS version to build'
-    required: false
-    type: string
-    default: '4.0.3'
+    description: 'METIS version to use'
+    default: 4.0.3
 
-  # CMAKE_GENERATOR: Ninja
-  CTEST: 
-    type: string
-    required: false
+  CTEST:
+    description: 'CTest command to use, warning: the last option is the test directory to be given'
     default: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
 
   # https://clang.llvm.org/docs/AddressSanitizer.html
   ASAN_OPTIONS:
-    type: string
-    required: false
     default: "detect_leaks=1,
               strict_init_order=1,
               strict_string_checks=1,
@@ -71,15 +46,19 @@ inputs:
 
   # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
   UBSAN_OPTIONS: 
-    type: string
-    required: false
     default: "halt_on_error=1, print_stacktrace=1"
 
   # https://clang.llvm.org/docs/MemorySanitizer.html
   MSAN_OPTIONS: 
-    type: string
-    required: false
     default: "poison_in_dtor=1"
+
+  LSAN_DIR:
+    description: 'LSAN suppression directory'
+    default: lsan
+
+  LSAN_FILE:
+    description: 'LSAN suppression file'
+    default: lsan.supp
 
 runs:
   using: 'composite'
@@ -87,18 +66,18 @@ runs:
     - name: Env (Inputs)
       run: |
         echo DEBUG=${{inputs.DEBUG}} >> $GITHUB_ENV
-        echo BRANCH=${{inputs.BRANCH}} >> $GITHUB_ENV
         echo REPOSITORY=${{inputs.REPOSITORY}} >> $GITHUB_ENV
-        echo LSAN_DIR=${{inputs.LSAN_DIR}} >> $GITHUB_ENV
-        echo LLVM_VER=${{inputs.LLVM_VER}} >> $GITHUB_ENV
-        echo LSAN_FILE=${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo BRANCH=${{inputs.BRANCH}} >> $GITHUB_ENV
         echo CLANG_VER=${{inputs.CLANG_VER}} >> $GITHUB_ENV
+        echo LLVM_VER=${{inputs.LLVM_VER}} >> $GITHUB_ENV
         echo HYPRE_VER=${{inputs.HYPRE_VER}} >> $GITHUB_ENV
         echo METIS_VER=${{inputs.METIS_VER}} >> $GITHUB_ENV
         echo CTEST=${{inputs.CTEST}} >> $GITHUB_ENV
         echo ASAN_OPTIONS=${{inputs.ASAN_OPTIONS}} >> $GITHUB_ENV
         echo UBSAN_OPTIONS=${{inputs.UBSAN_OPTIONS}} >> $GITHUB_ENV
         echo MSAN_OPTIONS=${{inputs.MSAN_OPTIONS}} >> $GITHUB_ENV
+        echo LSAN_DIR=${{inputs.LSAN_DIR}} >> $GITHUB_ENV
+        echo LSAN_FILE=${{inputs.LSAN_FILE}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (dir)
@@ -124,24 +103,3 @@ runs:
         echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
         echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
       shell: bash
-  
-    - name: Echo
-      run: |
-        echo "[LLVM_DIR] ${{ env.LLVM_DIR }}"
-        echo "[HYPRE_DIR] ${{ env.HYPRE_DIR }}"
-        echo "[METIS_DIR] ${{ env.METIS_DIR }}"
-        echo "[CC] ${{ env.CC }}"
-        echo "[CXX] ${{ env.CXX }}"
-        echo "[LLVM_INC] ${{ env.LLVM_INC }}"
-        echo "[LLVM_LIB] ${{ env.LLVM_LIB }}"
-        echo "[HYPRE_TGZ] ${{ env.HYPRE_TGZ }}"
-        echo "[METIS_TGZ] ${{ env.METIS_TGZ }}"
-        echo "[LSAN_OPTIONS] ${{ env.LSAN_OPTIONS }}"
-        echo "[LLVM_CXXFLAGS] ${{env.LLVM_CXXFLAGS}}"
-        echo "[LLVM_LDFLAGS] ${{env.LLVM_LDFLAGS}}"
-        echo "[CTEST] ${{env.CTEST}}"
-        echo "[ASAN_OPTIONS] ${{env.ASAN_OPTIONS}}"
-        echo "[UBSAN_OPTIONS] ${{env.UBSAN_OPTIONS}}"
-        echo "[MSAN_OPTIONS] ${{env.MSAN_OPTIONS}}"
-      shell: bash
-  
