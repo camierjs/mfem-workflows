@@ -19,6 +19,12 @@ inputs:
     required: true
     type: string
 
+  artifact-path:
+    description: 'path to what needs to be restored'
+    required: false
+    type: string
+    default: mfem/build
+
   par:
     description: 'Whether to build for parallel (true/false)'
     required: false
@@ -96,11 +102,11 @@ runs:
         ref: ubsan
         repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
 
-    - name: Download MFEM build
+    - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: upload-${{inputs.artifact-name}}
-        path: mfem/build
+        path: ${{inputs.artifact-path}}
 
     - name: Ninja Patch
       working-directory: mfem/build

@@ -27,7 +27,8 @@ jobs:
         with:
           par: true
           no-cache: true
-          artifact-name: mfem-par-${{matrix.sanitizer}}
+          artifact-name: mfem-par-${{matrix.san}}
+          # artifact-path: mfem/build/tests/unit
       
       # - name: Restore LLVM libcxx
       #   uses: actions/cache/restore@v4
@@ -76,16 +77,16 @@ jobs:
       #   run: |
       #     sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
       #     sed -i -e '/^add_test(\[=\[punit_tests\]=\]/ s/)/ "--input-file .\/list-test-names-${{matrix.tag}}" "--min-duration 1")/' tests/unit/CTestTestfile.cmake
-      # - name: Cat CTestTestfile.cmake
-      #   working-directory: mfem/build/tests/unit
-      #   run: cat CTestTestfile.cmake
-
+ 
       - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
           name: upload-unit-par-${{matrix.san}}
           path: mfem/build/tests/unit
 
+      # - name: Cat CTestTestfile.cmake
+      #   working-directory: mfem/build/tests/unit
+      #   run: cat CTestTestfile.cmake
 
       - name: Set Permissions
         run: find mfem/build/tests/unit -type f -exec chmod 755 {} \;
