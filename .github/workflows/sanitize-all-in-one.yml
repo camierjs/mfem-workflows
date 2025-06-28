@@ -1,5 +1,8 @@
 name: all-in-one
 
+on:
+  workflow_call:
+
 inputs:
   CXXFLAGS:
     description: 'Additional CXX flags'
@@ -16,9 +19,6 @@ inputs:
   sanitizer:
     description: 'Sanitizer to use (asan, msan, ubsan)'
     default: 'asan'
-
-on:
-  workflow_call:
 
 jobs:
 
