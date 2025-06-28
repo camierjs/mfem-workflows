@@ -25,12 +25,12 @@ jobs:
   build-mfem-par-asan:
     runs-on: ubuntu-latest
     name: asan
-    env:
-      CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=address -fsanitize-address-use-after-scope
-      LDFLAGS: ${{env.LDFLAGS}} -fsanitize=address
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/mfem
+        env:
+          CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=address -fsanitize-address-use-after-scope
+          LDFLAGS: ${{env.LDFLAGS}} -fsanitize=address
         with:
           key: mfem-par-asan
           par: true
@@ -38,12 +38,12 @@ jobs:
   build-mfem-par-ubsan:
     runs-on: ubuntu-latest
     name: ubsan
-    env:
-      CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=undefined
-      LDFLAGS: ${{env.LDFLAGS}} -fsanitize=undefined
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/mfem
+        env:
+          CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=undefined
+          LDFLAGS: ${{env.LDFLAGS}} -fsanitize=undefined
         with:
           key: mfem-par-ubsan
           par: true
