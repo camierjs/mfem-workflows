@@ -1,15 +1,10 @@
 name: test-seq-check
-
 on:
   workflow_call:
-
-###################
-# Check MFEM Serial
 jobs:
   test-seq-check:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]        
     name: ${{matrix.sanitizer}}

@@ -1,11 +1,6 @@
 name: build-file-lsan
-
 on:
   workflow_call:
-
-  #######################
-  # LSAN suppression file
-  # strdup required for Hypre 2.19.0
 jobs:
   build-file-lsan:
     runs-on: ubuntu-latest

@@ -1,20 +1,13 @@
 name: test-seq-unit-build
-
 on:
   workflow_call:
-
-##################################
-# Unit tests MFEM Serial (Compile)
 jobs:
   build-seq-unit:  
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
-
     name: ${{matrix.sanitizer}}
-
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -24,17 +17,14 @@ jobs:
           cache-path: mfem/build/tests/unit/unit_tests
           cache-key: unit-seq-${{matrix.sanitizer}}
           artifact-name: mfem-seq-${{matrix.sanitizer}}
-
       - name: Build Unit Tests
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v unit_tests
-
       - name: Delete object files
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build/tests/unit
         run: find . -type f -name '*.o' -delete
-
       - name: Upload
         uses: actions/upload-artifact@v4
         with:

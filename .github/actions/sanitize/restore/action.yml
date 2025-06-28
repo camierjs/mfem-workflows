@@ -5,19 +5,15 @@ inputs:
   cache-key:
     description: 'Key for the cache/upload, can be left to none if not needed'
     default: none
-
   cache-path:
     description: 'path to what needs to be restored'
     default: none
-
   artifact-name:
     description: 'Name of the artifact to download'
     default: none
-
   artifact-path:
     description: 'path to what needs to be restored'
     default: mfem/build
-
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false

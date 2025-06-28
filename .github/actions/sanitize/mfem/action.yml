@@ -5,11 +5,9 @@ inputs:
   key:
     description: 'Key for the cache/upload'
     default: none
-
   path:
     description: 'path to what needs to be cached'
     default: mfem/build
-
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false

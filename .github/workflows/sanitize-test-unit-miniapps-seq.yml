@@ -1,15 +1,10 @@
 name: test-seq-unit-miniapps
-
 on:
   workflow_call:
-
-##################################
-# Tests Unit Miniapps MFEM Serial
 jobs:
   test-seq-unit-miniapps:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
     name: ${{matrix.sanitizer}}
@@ -18,11 +13,9 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           artifact-name: mfem-seq-${{matrix.sanitizer}}
-
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-
       - name: Run Tests Unit Miniapps
         working-directory: mfem/build
         run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"

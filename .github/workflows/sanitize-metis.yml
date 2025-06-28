@@ -1,10 +1,6 @@
 name: build-metis
-
 on:
   workflow_call:
-
-#############
-# Build METIS
 jobs:
   build-metis:
     runs-on: ubuntu-latest

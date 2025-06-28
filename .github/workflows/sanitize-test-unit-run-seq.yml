@@ -1,33 +1,24 @@
 name: test-seq-unit-run
-
 on:
   workflow_call:
-
-######################################
-# Unit tests MFEM Serial (Split & Run)
 jobs:
   test-seq-unit:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
-
     name: ${{matrix.sanitizer}}-${{matrix.tag}}
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
         with:
           artifact-name: mfem-seq-${{matrix.sanitizer}}
-
       - name: Restore Unit Tests
         uses: actions/download-artifact@v4
         with:
           name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
-
       - name: Split Unit Tests
         working-directory: mfem/build/tests/unit
         run: |
@@ -35,7 +26,7 @@ jobs:
           ./unit_tests --list-test-names-only | tail -n +2 > list-test-names
           shuf list-test-names -o list-test-names
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
-
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build
         run: ${{env.CTEST}} tests/unit -R "unit_tests"
+

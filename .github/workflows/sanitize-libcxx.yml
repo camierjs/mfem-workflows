@@ -1,15 +1,10 @@
 name: build-libcxx
-
 on:
   workflow_call:
-
-#############
-# LLVM libcxx
 jobs:
   build-llvm-libcxx:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
         include:

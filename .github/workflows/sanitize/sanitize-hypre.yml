@@ -1,10 +1,6 @@
 name: build-hypre
-
 on:
   workflow_call:
-
-#############
-# Build HYPRE
 jobs:
   build-hypre:
     runs-on: ubuntu-latest
@@ -30,3 +26,4 @@ jobs:
           target: int32
           precision: fp64
           build-system: make
+

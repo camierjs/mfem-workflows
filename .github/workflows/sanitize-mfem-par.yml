@@ -1,15 +1,10 @@
 name: build-mfem-par
-
 on:
   workflow_call:
-
-#####################
-# Build MFEM Parallel
 jobs:
   build-par-mfem:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, ubsan]
         include:

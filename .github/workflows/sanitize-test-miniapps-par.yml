@@ -1,20 +1,13 @@
 name: test-par-miniapps
-
 on:
   workflow_call:
-
-########################
-# Miniapps MFEM Parallel
 jobs:
   test-par-miniapps:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, ubsan]
-
     name: ${{matrix.sanitizer}}
-
     steps:
       - uses: actions/checkout@v4      
       - name: Restore
@@ -25,12 +18,10 @@ jobs:
           cache-key: miniapps-par-${{matrix.sanitizer}}
           artifact-name: mfem-par-${{matrix.sanitizer}}
           par: true
-
       - name: Build Miniapps
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v miniapps
-
       - name: Test Miniapps
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build

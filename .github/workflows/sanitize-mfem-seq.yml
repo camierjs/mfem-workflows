@@ -1,15 +1,10 @@
 name: build-mfem-seq
-
 on:
   workflow_call:
-
-###################
-# Build MFEM Serial
 jobs:
   build-seq-mfem:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         sanitizer: [asan, msan, ubsan]
         include:
