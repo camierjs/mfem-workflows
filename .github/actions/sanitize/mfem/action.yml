@@ -82,7 +82,7 @@ runs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: upload-${{inputs.key}}
+        name: ${{inputs.key}}-${{inputs.sanitizer}}
         path: mfem/build
         if-no-files-found: error
         retention-days: 1

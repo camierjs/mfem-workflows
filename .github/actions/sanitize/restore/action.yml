@@ -48,7 +48,7 @@ runs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: upload-${{inputs.build-key}}
+        name: ${{inputs.build-key}}-${{inputs.sanitizer}}
         path: ${{inputs.artifact-path}}
 
     - name: Ninja Patch

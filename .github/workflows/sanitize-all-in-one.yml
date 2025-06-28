@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/sanitize/mfem
         with:
           sanitizer: ${{inputs.sanitizer}}
-          key: build-${{inputs.key}}
+          key: build-${{inputs.key}} # build-seq-asan, build-par-ubsan
           par: ${{inputs.par}}
 
   check:
@@ -102,6 +102,7 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           build-key: build-${{inputs.key}}
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
@@ -115,7 +116,7 @@ jobs:
         working-directory: mfem/build
         run: ${{env.CTEST}} tests/unit -E "unit_tests|debug" -R "_cpu_np"
 
-  tests-build:  
+  tests-unit-build:
     needs: [check]
     runs-on: ubuntu-latest
     env:
@@ -148,8 +149,8 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  tests-run:
-    needs: [tests-build]
+  tests-unit-run:
+    needs: [tests-unit-build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
