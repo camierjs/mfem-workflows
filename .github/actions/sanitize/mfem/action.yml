@@ -48,9 +48,12 @@ runs:
     - name: MFEM Build
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: mfem/github-actions/build-mfem@v2.5
+      # env:
+      #   CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}} # matrix.* could be removed if not used anymore
+      #   LDFLAGS:   ${{matrix.ldflags}}  ${{env.LDFLAGS}}
       env:
-        CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}}
-        LDFLAGS:   ${{matrix.ldflags}}  ${{env.LDFLAGS}}
+        CXXFLAGS: ${{env.CXXFLAGS}}
+        LDFLAGS: ${{env.LDFLAGS}}
       with:
         mpi: ${{ inputs.par == 'false' && 'seq' || 'par' }}
         mfem-dir: mfem
