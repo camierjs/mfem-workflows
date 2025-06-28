@@ -14,11 +14,3 @@ runs:
         echo MPI_INC=$(mpicxx --showme:compile) >> $GITHUB_ENV
         echo MPI_LIB=$(mpicxx --showme:link) >> $GITHUB_ENV
       shell: bash
-
-    - name: Echo
-      run: |
-        echo "[MPI] Version: $(mpicxx --showme:version)"
-        echo "[MPI] Compile: $(mpicxx --showme:compile)"
-        echo "[MPI] Link: $(mpicxx --showme:link)"
-      shell: bash
-      
