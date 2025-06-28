@@ -14,7 +14,7 @@ jobs:
         sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
 
-    name: ${{matrix.san}}-${{matrix.tag}}
+    name: ${{matrix.sanitizer}}-${{matrix.tag}}
 
     steps:
       - uses: actions/checkout@v4
