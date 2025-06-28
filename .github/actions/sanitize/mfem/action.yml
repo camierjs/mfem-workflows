@@ -49,8 +49,8 @@ runs:
     - name: MFEM Build
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: mfem/github-actions/build-mfem@v2.5
-      # env:
-      #   CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}} # matrix.* could be removed if not used anymore
+      # env: # matrix.* could be removed if not used anymore
+      #   CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}} 
       #   LDFLAGS:   ${{matrix.ldflags}}  ${{env.LDFLAGS}}
       env:
         CXXFLAGS: ${{env.CXXFLAGS}}

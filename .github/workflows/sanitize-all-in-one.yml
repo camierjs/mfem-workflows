@@ -41,6 +41,7 @@ jobs:
           build-key: build-${{inputs.key}}
           cache-key: check-${{inputs.key}}
           cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: MFEM Check
         if: ${{ steps.check.outputs.cache-hit != 'true' }}
@@ -59,6 +60,7 @@ jobs:
           build-key: build-${{inputs.key}}
           cache-key: examples-${{inputs.key}}
           cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Build Examples
         if: ${{ steps.examples.outputs.cache-hit != 'true' }}
@@ -81,6 +83,7 @@ jobs:
           build-key: build-${{inputs.key}}
           cache-key: miniapps-${{inputs.key}}
           cache-path: mfem/build/miniapps/meshing/minimal-surface # (pminimal-surface)
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Build Miniapps
         if: ${{ steps.miniapps.outputs.cache-hit != 'true' }}
@@ -124,6 +127,7 @@ jobs:
           build-key: build-${{inputs.key}}
           cache-key: tests-${{inputs.key}}
           cache-path: mfem/build/tests/unit/${{env.unit_tests}}
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Build Unit Tests
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
@@ -156,6 +160,7 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           build-key: build-${{inputs.key}}
+          sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Restore Unit Tests
         uses: actions/download-artifact@v4

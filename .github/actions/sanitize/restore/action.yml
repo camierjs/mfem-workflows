@@ -17,6 +17,9 @@ inputs:
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
+  sanitizer:
+    description: 'Sanitizer to use (asan, msan, ubsan)'
+    default: 'asan'
     
 outputs:
   cache-hit:
@@ -40,6 +43,7 @@ runs:
       uses: ./.github/actions/sanitize/setup
       with:
         par: ${{inputs.par}}
+        sanitizer: ${{inputs.sanitizer}}
 
     - name: Download artifact
       uses: actions/download-artifact@v4
