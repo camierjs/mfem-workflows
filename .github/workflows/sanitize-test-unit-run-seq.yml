@@ -40,4 +40,4 @@ jobs:
 
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -V -R "unit_tests"
+        run: ${{env.CTEST}} tests/unit -R "unit_tests"
