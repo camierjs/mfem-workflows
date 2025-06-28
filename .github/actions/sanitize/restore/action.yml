@@ -35,7 +35,8 @@ outputs:
 
 runs:
   using: 'composite'
-  steps:  
+  steps:
+    - uses: ./.github/actions/sanitize/config
     - name: Cache
       if: ${{ env.DEBUG == 'true' && inputs.no-cache != 'true' }}
       id: cache

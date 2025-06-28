@@ -16,9 +16,7 @@ jobs:
     name: ${{matrix.sanitizer}}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/sanitize/env
-      
+      - uses: actions/checkout@v4      
       - name: Restore
         id: restore
         uses: ./.github/actions/sanitize/restore

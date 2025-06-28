@@ -17,7 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/sanitize/env
       - uses: ./.github/actions/sanitize/restore
         with:
           par: true

@@ -5,7 +5,7 @@ inputs:
   # if 'true', then use cache to speed up the workflow while debugging
   DEBUG:
     type: string
-    default: 'false'
+    default: 'true'
 
   # 🔥🔥🔥 Using MFEM/ubsan repository
   REPOSITORY:

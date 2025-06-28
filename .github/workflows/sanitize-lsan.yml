@@ -12,7 +12,7 @@ jobs:
     name: lsan.supp
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/sanitize/env
+      - uses: ./.github/actions/sanitize/config
       - name: Cache
         id: cache
         uses: actions/cache@v4
