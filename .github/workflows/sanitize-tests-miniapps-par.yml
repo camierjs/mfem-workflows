@@ -13,7 +13,7 @@ jobs:
       - uses: ./.github/actions/sanitize/restore
         with:
           par: true
-          artifact-name: mfem-par-${{matrix.sanitizer}}
+          build-key: mfem-par-${{matrix.sanitizer}}
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all

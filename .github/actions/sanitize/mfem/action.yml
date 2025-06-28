@@ -5,9 +5,6 @@ inputs:
   key:
     description: 'Key for the cache/upload'
     default: none
-  path:
-    description: 'path to what needs to be cached'
-    default: mfem/build
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
@@ -21,7 +18,7 @@ runs:
       id: debug
       uses: actions/cache@v4
       with:
-        path: ${{inputs.path}}
+        path: mfem/build
         key: cache-${{inputs.key}}
 
     - name: Setup

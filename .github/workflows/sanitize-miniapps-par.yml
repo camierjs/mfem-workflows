@@ -16,7 +16,7 @@ jobs:
         with:
           cache-path: mfem/build/miniapps/meshing/pminimal-surface
           cache-key: miniapps-par-${{matrix.sanitizer}}
-          artifact-name: mfem-par-${{matrix.sanitizer}}
+          build-key: mfem-par-${{matrix.sanitizer}}
           par: true
       - name: Build Miniapps
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}

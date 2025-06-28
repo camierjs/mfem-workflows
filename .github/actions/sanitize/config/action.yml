@@ -43,14 +43,26 @@ inputs:
               strict_string_checks=1,
               check_initialization_order=1,
               detect_stack_use_after_return=1"
+  ASAN_CXXFLAGS: 
+    default: -fsanitize=address -fsanitize-address-use-after-scope
+  ASAN_LDFLAGS: 
+    default: -fsanitize=address
 
   # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
   UBSAN_OPTIONS: 
     default: "halt_on_error=1, print_stacktrace=1"
+  UBSAN_CXXFLAGS: 
+    default: -fsanitize=undefined
+  UBSAN_LDFLAGS: 
+    default: -fsanitize=undefined
 
   # https://clang.llvm.org/docs/MemorySanitizer.html
   MSAN_OPTIONS: 
     default: "poison_in_dtor=1"
+  MSAN_CXXFLAGS: 
+    default: -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor
+  MSAN_LDFLAGS: 
+    default: -fsanitize=memory
 
   LSAN_DIR:
     description: 'LSAN suppression directory'
@@ -78,6 +90,12 @@ runs:
         echo MSAN_OPTIONS=${{inputs.MSAN_OPTIONS}} >> $GITHUB_ENV
         echo LSAN_DIR=${{inputs.LSAN_DIR}} >> $GITHUB_ENV
         echo LSAN_FILE=${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo ASAN_CXXFLAGS=${{inputs.ASAN_CXXFLAGS}} >> $GITHUB_ENV
+        echo ASAN_LDFLAGS=${{inputs.ASAN_LDFLAGS}} >> $GITHUB_ENV
+        echo UBSAN_CXXFLAGS=${{inputs.UBSAN_CXXFLAGS}} >> $GITHUB_ENV
+        echo UBSAN_LDFLAGS=${{inputs.UBSAN_LDFLAGS}} >> $GITHUB_ENV
+        echo MSAN_CXXFLAGS=${{inputs.MSAN_CXXFLAGS}} >> $GITHUB_ENV
+        echo MSAN_LDFLAGS=${{inputs.MSAN_LDFLAGS}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (dir)

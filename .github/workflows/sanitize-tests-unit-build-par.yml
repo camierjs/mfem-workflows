@@ -16,7 +16,7 @@ jobs:
         with:
           cache-path: mfem/build/tests/unit/punit_tests
           cache-key: unit-par-${{matrix.sanitizer}}
-          artifact-name: mfem-par-${{matrix.sanitizer}}
+          build-key: mfem-par-${{matrix.sanitizer}}
           par: true
       - name: Build Unit Tests
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}

@@ -16,7 +16,7 @@ jobs:
         with:
           cache-path: mfem/build/examples/ex1p
           cache-key: examples-par-${{matrix.sanitizer}}
-          artifact-name: mfem-par-${{matrix.sanitizer}}
+          build-key: mfem-par-${{matrix.sanitizer}}
           par: true
       - name: Build Examples
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}

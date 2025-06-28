@@ -8,7 +8,7 @@ inputs:
   cache-path:
     description: 'path to what needs to be restored'
     default: none
-  artifact-name:
+  build-key:
     description: 'Name of the artifact to download'
     default: none
   artifact-path:
@@ -44,7 +44,7 @@ runs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: upload-${{inputs.artifact-name}}
+        name: upload-${{inputs.build-key}}
         path: ${{inputs.artifact-path}}
 
     - name: Ninja Patch

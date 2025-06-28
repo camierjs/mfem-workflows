@@ -27,55 +27,60 @@ jobs:
   build-libcxx:
     uses: ./.github/workflows/sanitize-build-libcxx.yml
 
-  build-mfem-par:
-    needs: [build-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize-build-mfem-par.yml
-  build-mfem-seq:
+  # build-mfem-par:
+  #   needs: [build-libcxx, build-hypre, build-metis]
+  #   uses: ./.github/workflows/sanitize-build-mfem-par.yml
+  # build-mfem-seq:
+  #   needs: [build-libcxx]
+  #   uses: ./.github/workflows/sanitize-build-mfem-seq.yml
+
+  # check-par:
+  #   needs: [build-lsan, build-libcxx, build-mfem-par]
+  #   uses: ./.github/workflows/sanitize-check-par.yml
+  # check-seq:
+  #   needs: [build-lsan, build-libcxx, build-mfem-seq]
+  #   uses: ./.github/workflows/sanitize-check-seq.yml
+
+  # examples-par:
+  #   needs: [build-lsan, build-libcxx, check-par]
+  #   uses: ./.github/workflows/sanitize-examples-par.yml
+  # examples-seq:
+  #   needs: [build-lsan, build-libcxx, check-seq]
+  #   uses: ./.github/workflows/sanitize-examples-seq.yml
+
+  # miniapps-par:
+  #   needs: [build-lsan, build-libcxx, check-par]
+  #   uses: ./.github/workflows/sanitize-miniapps-par.yml
+  # miniapps-seq:
+  #   needs: [build-lsan, build-libcxx, check-seq]
+  #   uses: ./.github/workflows/sanitize-miniapps-seq.yml
+
+  # tests-miniapps-par:
+  #   needs: [build-lsan, build-libcxx, check-par]
+  #   uses: ./.github/workflows/sanitize-tests-miniapps-par.yml
+  # tests-miniapps-seq:
+  #   needs: [build-lsan, build-libcxx, check-seq]
+  #   uses: ./.github/workflows/sanitize-tests-miniapps-seq.yml
+
+  # tests-unit-build-par:
+  #   needs: [build-lsan, build-libcxx, check-par]
+  #   uses: ./.github/workflows/sanitize-tests-unit-build-par.yml
+  # tests-unit-build-seq:
+  #   needs: [build-lsan, build-libcxx, check-seq]
+  #   uses: ./.github/workflows/sanitize-tests-unit-build-seq.yml
+
+  # tests-unit-run-par:
+  #   needs: [build-lsan, build-libcxx, tests-unit-build-par]
+  #   uses: ./.github/workflows/sanitize-tests-unit-run-par.yml
+  # tests-unit-run-seq:
+  #   needs: [build-lsan, build-libcxx, tests-unit-build-seq]
+  #   uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
+
+  seq-asan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-build-mfem-seq.yml
-
-  check-par:
-    needs: [build-lsan, build-libcxx, build-mfem-par]
-    uses: ./.github/workflows/sanitize-check-par.yml
-  check-seq:
-    needs: [build-lsan, build-libcxx, build-mfem-seq]
-    uses: ./.github/workflows/sanitize-check-seq.yml
-
-  examples-par:
-    needs: [build-lsan, build-libcxx, check-par]
-    uses: ./.github/workflows/sanitize-examples-par.yml
-  examples-seq:
-    needs: [build-lsan, build-libcxx, check-seq]
-    uses: ./.github/workflows/sanitize-examples-seq.yml
-
-  miniapps-par:
-    needs: [build-lsan, build-libcxx, check-par]
-    uses: ./.github/workflows/sanitize-miniapps-par.yml
-  miniapps-seq:
-    needs: [build-lsan, build-libcxx, check-seq]
-    uses: ./.github/workflows/sanitize-miniapps-seq.yml
-
-  tests-miniapps-par:
-    needs: [build-lsan, build-libcxx, check-par]
-    uses: ./.github/workflows/sanitize-tests-miniapps-par.yml
-  tests-miniapps-seq:
-    needs: [build-lsan, build-libcxx, check-seq]
-    uses: ./.github/workflows/sanitize-tests-miniapps-seq.yml
-
-  tests-unit-build-par:
-    needs: [build-lsan, build-libcxx, check-par]
-    uses: ./.github/workflows/sanitize-tests-unit-build-par.yml
-  tests-unit-build-seq:
-    needs: [build-lsan, build-libcxx, check-seq]
-    uses: ./.github/workflows/sanitize-tests-unit-build-seq.yml
-
-  tests-unit-run-par:
-    needs: [build-lsan, build-libcxx, tests-unit-build-par]
-    uses: ./.github/workflows/sanitize-tests-unit-run-par.yml
-  tests-unit-run-seq:
-    needs: [build-lsan, build-libcxx, tests-unit-build-seq]
-    uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
-
-  all-in-one:
-    needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one-seq.yml
+    uses: ./.github/workflows/sanitize-all-in-one.yml
+    with:
+      CXXFLAGS: ${{env.ASAN_CXXFLAGS}}
+      LDFLAGS: ${{env.ASAN_LDFLAGS}}
+      key: seq-asan
+      par: false

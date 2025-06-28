@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
         with:
-          artifact-name: mfem-seq-${{matrix.sanitizer}}
+          build-key: mfem-seq-${{matrix.sanitizer}}
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
