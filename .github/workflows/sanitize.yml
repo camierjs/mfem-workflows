@@ -34,10 +34,6 @@ jobs:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-build-mfem-seq.yml
 
-  all-in-one-seq:
-    needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one-seq.yml
-
   check-par:
     needs: [build-lsan, build-libcxx, build-mfem-par]
     uses: ./.github/workflows/sanitize-check-par.yml
@@ -58,6 +54,10 @@ jobs:
   miniapps-seq:
     needs: [build-lsan, build-libcxx, check-seq]
     uses: ./.github/workflows/sanitize-miniapps-seq.yml
+
+  all-in-one:
+    needs: [build-libcxx]
+    uses: ./.github/workflows/sanitize-all-in-one-seq.yml
 
   tests-miniapps-par:
     needs: [build-lsan, build-libcxx, check-par]

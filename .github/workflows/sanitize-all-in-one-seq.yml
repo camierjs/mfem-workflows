@@ -1,8 +1,11 @@
-name: all-in-one-seq
+name: all-in-one
+
 on:
   workflow_call:
+
 jobs:
-  build-seq:
+
+  build:
     runs-on: ubuntu-latest
     name: build-seq
     steps:
@@ -14,21 +17,43 @@ jobs:
         with:
           key: mfem-one-seq
 
-  check-seq:
-    needs: [build-seq]
+  check:
     name: check-seq
+    needs: [build-seq]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Restore
-        uses: ./.github/actions/sanitize/restore
         id: restore
+        uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1
-          cache-key: check-seq-asan
-          artifact-name: mfem-one-seq
+          cache-key: check-one-seq
+          artifact-name: check-one-seq
           par: false
       - name: MFEM Check
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v check
+
+  examples:
+    name: examples-seq
+    needs: [check-seq]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore
+        id: restore
+        uses: ./.github/actions/sanitize/restore
+        with:
+          cache-path: mfem/build/examples/ex1
+          cache-key: examples-one-seq
+          artifact-name: examples-one-seq
+      - name: Build Examples
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ninja -v examples
+      - name: Test Examples
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} examples
