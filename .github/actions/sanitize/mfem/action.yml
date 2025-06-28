@@ -33,14 +33,17 @@ runs:
     - name: Build with ASAN
       if: inputs.sanitizer == 'asan'
       run: echo CXXFLAGS=${{env.CXXFLAGS}} ${{env.ASAN_CXXFLAGS}} >> $GITHUB_ENV
+      shell: bash
 
     - name: Build with MSAN
       if: inputs.sanitizer == 'msan'
       run: echo CXXFLAGS=${{env.CXXFLAGS}} ${{env.MSAN_CXXFLAGS}} >> $GITHUB_ENV
+      shell: bash
 
     - name: Build with UBSAN
       if: inputs.sanitizer == 'ubsan'
       run: echo CXXFLAGS=${{env.CXXFLAGS}} ${{env.UBSAN_CXXFLAGS}} >> $GITHUB_ENV
+      shell: bash
 
     - name: MFEM Build
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
