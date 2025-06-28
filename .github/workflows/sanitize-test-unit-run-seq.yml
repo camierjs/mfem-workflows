@@ -11,11 +11,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        san: [asan, msan, ubsan]
+        sanitizer: [asan, msan, ubsan]
         tag: [0, 1, 2, 3]
 
     name: ${{matrix.san}}-${{matrix.tag}}
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/sanitize/restore
         with:
           no-cache: true
-          artifact-name: mfem-seq-${{matrix.san}}
+          artifact-name: mfem-seq-${{matrix.sanitizer}}
           # artifact-path: mfem/build/tests/unit
 
       # - name: Restore LLVM libcxx
@@ -34,7 +34,7 @@ jobs:
       #   with:
       #     path: ${{env.LLVM_DIR}}
       #     fail-on-cache-miss: true
-      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.san}}
+      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       # - name: Restore LSAN file
       #   uses: actions/cache/restore@v4
       #   with:
@@ -50,7 +50,7 @@ jobs:
       # - name: Download MFEM
       #   uses: actions/download-artifact@v4
       #   with:
-      #     name: upload-mfem-seq-${{matrix.san}}
+      #     name: upload-mfem-seq-${{matrix.sanitizer}}
       #     path: mfem/build
       # - name: Ninja Patch
       #   working-directory: mfem/build
@@ -66,7 +66,7 @@ jobs:
       - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
-          name: upload-unit-seq-${{matrix.san}}
+          name: upload-unit-seq-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
 
       - name: Set Permissions

@@ -11,10 +11,10 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        san: [asan, ubsan]
+        sanitizer: [asan, ubsan]
         tag: [0, 1, 2, 3]
 
-    name: ${{matrix.san}}-${{matrix.tag}}
+    name: ${{matrix.sanitizer}}-${{matrix.tag}}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
         with:
           par: true
           no-cache: true
-          artifact-name: mfem-par-${{matrix.san}}
+          artifact-name: mfem-par-${{matrix.sanitizer}}
           # artifact-path: mfem/build/tests/unit
       
       # - name: Restore LLVM libcxx
@@ -35,7 +35,7 @@ jobs:
       #   with:
       #     path: ${{env.LLVM_DIR}}
       #     fail-on-cache-miss: true
-      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.san}}
+      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       # - name: Restore Hypre
       #   uses: actions/cache/restore@v4
       #   with:
@@ -65,7 +65,7 @@ jobs:
       # - name: Download MFEM
       #   uses: actions/download-artifact@v4
       #   with:
-      #     name: upload-mfem-par-${{matrix.san}}
+      #     name: upload-mfem-par-${{matrix.sanitizer}}
       #     path: mfem/build
       # - name: Copy Data
       #   working-directory: mfem/build
@@ -81,7 +81,7 @@ jobs:
       - name: Download Unit Tests
         uses: actions/download-artifact@v4
         with:
-          name: upload-unit-par-${{matrix.san}}
+          name: upload-unit-par-${{matrix.sanitizer}}
           path: mfem/build/tests/unit
 
       # - name: Cat CTestTestfile.cmake
