@@ -106,12 +106,14 @@ jobs:
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      - name: Run Tests Unit Miniapps
+      - name: Run Tests Unit Miniapps (Serial)
+        if: ${{ !inputs.par }}
         working-directory: mfem/build
-        run: >
-          ${{env.CTEST}} tests/unit 
-          -E ${{ inputs.par && \"unit_tests|debug\" || \"^unit_tests$|debug\" }} 
-          -R ${{ inputs.par &&          \"_cpu_np\" || \"\"}} 
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"
+      - name: Run Tests Unit Miniapps (Parallel)
+        if: ${{ inputs.par }}
+        working-directory: mfem/build
+        run: ${{env.CTEST}} tests/unit -E "unit_tests|debug" -R "_cpu_np"
 
   tests-build:  
     needs: [check]
