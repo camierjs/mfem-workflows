@@ -7,6 +7,14 @@ inputs:
     type: string
     default: 'true'
 
+  # 🔥🔥🔥 Using MFEM/ubsan repository
+  REPOSITORY:
+    default: mfem/mfem  
+    description: 'Repository to checkout'
+  BRANCH:
+    default: ubsan
+    description: 'Branch to checkout'
+
   LSAN_DIR:
     description: 'LSAN suppression directory'
     required: false
@@ -79,6 +87,8 @@ runs:
     - name: Env (Inputs)
       run: |
         echo DEBUG=${{inputs.DEBUG}} >> $GITHUB_ENV
+        echo BRANCH=${{inputs.BRANCH}} >> $GITHUB_ENV
+        echo REPOSITORY=${{inputs.REPOSITORY}} >> $GITHUB_ENV
         echo LSAN_DIR=${{inputs.LSAN_DIR}} >> $GITHUB_ENV
         echo LLVM_VER=${{inputs.LLVM_VER}} >> $GITHUB_ENV
         echo LSAN_FILE=${{inputs.LSAN_FILE}} >> $GITHUB_ENV

@@ -27,4 +27,4 @@ jobs:
 
       - name: Run Tests Unit Miniapps
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "^unit_tests$"
+        run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"

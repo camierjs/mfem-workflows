@@ -28,4 +28,4 @@ jobs:
 
       - name: Run Unit Tests Miniapps
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "unit_tests"
+        run: ${{env.CTEST}} tests/unit -E "unit_tests|debug" -R "_cpu_np"

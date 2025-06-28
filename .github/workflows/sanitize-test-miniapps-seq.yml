@@ -19,7 +19,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: ./.github/actions/sanitize/env
 
       - name: Restore
@@ -29,44 +28,6 @@ jobs:
           cache-path: mfem/build/miniapps/meshing/minimal-surface
           cache-key: miniapps-seq-${{matrix.sanitizer}}
           artifact-name: mfem-seq-${{matrix.sanitizer}}
-
-      # - name: Cache
-      #   if: ${{ env.DEBUG == 'true' }}
-      #   id: cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: mfem/build/miniapps/meshing/minimal-surface
-      #     key: cache-miniapps-seq-${{matrix.sanitizer}}
-      # - name: Restore LLVM libcxx
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.LLVM_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
-      # - name: Restore LSAN file
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: ${{env.LSAN_DIR}}
-      #     fail-on-cache-miss: true
-      #     key: cache-lsan-suppression-file
-      # - name: Checkout
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   uses: actions/checkout@v4
-      #   with:
-      #     path: mfem
-      #     ref: ubsan
-      #     repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
-      # - name: Download MFEM
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: upload-mfem-seq-${{matrix.sanitizer}}
-      #     path: mfem/build
-      # - name: Ninja Patch
-      #   if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      #   working-directory: mfem/build
-      #   run: sed -i -e 's/CXX_STATIC_LIBRARY_LINKER__mfem_Release.*/CUSTOM_COMMAND/' build.ninja
 
       - name: Build Miniapps
         if: ${{ steps.restore.outputs.cache-hit != 'true' }}

@@ -41,8 +41,8 @@ runs:
       uses: actions/checkout@v4
       with:
         path: mfem
-        ref: ubsan
-        repository: mfem/mfem  # 🔥🔥🔥 Using MFEM/ubsan repository
+        ref: ${{ env.BRANCH }}
+        repository: ${{ env.REPOSITORY }}
 
     - name: Restore Hypre
       if: ${{ inputs.par == 'true' && steps.cache.outputs.cache-hit != 'true' }}

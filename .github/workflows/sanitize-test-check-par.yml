@@ -17,15 +17,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/env
       - name: Restore
-        id: cache
+        id: restore
         uses: ./.github/actions/sanitize/restore
         with:
           cache-path: mfem/build/examples/ex1p
           cache-key: check-par-${{matrix.sanitizer}}
           artifact-name: mfem-par-${{matrix.sanitizer}}
-          par: true
-    
+          par: true    
       - name: MFEM Check
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
         run: ninja -v check
