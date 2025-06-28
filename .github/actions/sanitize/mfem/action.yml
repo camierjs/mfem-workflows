@@ -14,9 +14,6 @@ inputs:
 
 runs:
   using: 'composite'
-  env:
-    CXXFLAGS: ${{env.CXXFLAGS}} ${{ inputs.sanitizer == 'asan' && env.ASAN_CXXFLAGS || inputs.sanitizer == 'msan' && env.MSAN_CXXFLAGS || env.UBSAN_CXXFLAGS }}
-    LDFLAGS:   ${{env.LDFLAGS}} ${{ inputs.sanitizer == 'asan' &&  env.ASAN_LDFLAGS || inputs.sanitizer == 'msan' &&  env.MSAN_LDFLAGS || env.UBSAN_LDFLAGS }}
   steps:
     - uses: ./.github/actions/sanitize/config
     - name: DEBUG Cache
@@ -37,8 +34,8 @@ runs:
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: mfem/github-actions/build-mfem@v2.5
       env:
-        CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}}
-        LDFLAGS: ${{matrix.ldflags}} ${{env.LDFLAGS}}
+        CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}} ${{ inputs.sanitizer == 'asan' && env.ASAN_CXXFLAGS || inputs.sanitizer == 'msan' && env.MSAN_CXXFLAGS || env.UBSAN_CXXFLAGS }}
+        LDFLAGS:   ${{matrix.ldflags}}  ${{env.LDFLAGS}} ${{ inputs.sanitizer == 'asan' &&  env.ASAN_LDFLAGS || inputs.sanitizer == 'msan' &&  env.MSAN_LDFLAGS || env.UBSAN_LDFLAGS }}
       with:
         mpi: ${{ inputs.par == 'false' && 'seq' || 'par' }}
         mfem-dir: mfem
