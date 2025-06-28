@@ -110,14 +110,14 @@ jobs:
         working-directory: mfem/build
         run: >
           ${{env.CTEST}} tests/unit 
-          -E ${{ inputs.par == 'false' && '^unit_tests$|debug' || 'unit_tests|debug' }} 
-          -R ${{ inputs.par == 'false' &&                   '' ||          '_cpu_np' }} 
+          -E ${{ inputs.par && "unit_tests|debug" || "^unit_tests$|debug" }} 
+          -R ${{ inputs.par &&          "_cpu_np" || ""}} 
 
   tests-build:  
     needs: [check]
     runs-on: ubuntu-latest
     env:
-      unit_tests: ${{ inputs.par == 'false' && 'unit_tests' || 'punit_tests' }}
+      unit_tests: ${{ inputs.par && 'punit_tests' || 'unit_tests' }}
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -154,7 +154,7 @@ jobs:
         tag: [0, 1, 2, 3]
     name: tests-${{matrix.tag}}
     env:
-      unit_tests: ${{ inputs.par == 'false' && 'unit_tests' || 'punit_tests' }}
+      unit_tests: ${{ inputs.par && 'punit_tests' || 'unit_tests' }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
