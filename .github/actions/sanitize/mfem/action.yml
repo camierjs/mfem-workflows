@@ -8,9 +8,15 @@ inputs:
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
+  sanitizer:
+    description: 'Sanitizer to use (asan, msan, ubsan)'
+    default: 'asan'
 
 runs:
   using: 'composite'
+  env:
+    CXXFLAGS: ${{env.CXXFLAGS}} ${{ inputs.sanitizer == 'asan' && env.ASAN_CXXFLAGS || inputs.sanitizer == 'msan' && env.MSAN_CXXFLAGS || env.UBSAN_CXXFLAGS }}
+    LDFLAGS:   ${{env.LDFLAGS}} ${{ inputs.sanitizer == 'asan' &&  env.ASAN_LDFLAGS || inputs.sanitizer == 'msan' &&  env.MSAN_LDFLAGS || env.UBSAN_LDFLAGS }}
   steps:
     - uses: ./.github/actions/sanitize/config
     - name: DEBUG Cache

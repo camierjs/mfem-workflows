@@ -13,6 +13,9 @@ inputs:
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
+  sanitizer:
+    description: 'Sanitizer to use (asan, msan, ubsan)'
+    default: 'asan'
 
 on:
   workflow_call:
@@ -28,6 +31,7 @@ jobs:
           CXXFLAGS: ${{env.CXXFLAGS}} ${{inputs.CXXFLAGS}}
           LDFLAGS: ${{env.LDFLAGS}} ${{inputs.LDFLAGS}}
         with:
+          sanitizer: ${{inputs.sanitizer}}
           key: build-${{inputs.key}}
           par: ${{inputs.par}}
 
@@ -42,7 +46,7 @@ jobs:
         with:
           build-key: build-${{inputs.key}}
           cache-key: check-${{inputs.key}}
-          cache-path: mfem/build/examples/ex1 # ex1p
+          cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
           par: ${{inputs.par}}
       - name: MFEM Check
         if: ${{ steps.check.outputs.cache-hit != 'true' }}
@@ -60,7 +64,7 @@ jobs:
         with:
           build-key: build-${{inputs.key}}
           cache-key: examples-${{inputs.key}}
-          cache-path: mfem/build/examples/ex1 # ex1p, could be set in donfig
+          cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
           par: ${{inputs.par}}
       - name: Build Examples
         if: ${{ steps.examples.outputs.cache-hit != 'true' }}
