@@ -2,22 +2,48 @@ name: build-mfem-par
 on:
   workflow_call:
 jobs:
-  build-par-mfem:
+  # build-par-mfem:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       sanitizer: [asan, ubsan]
+  #       include:
+  #         - sanitizer: asan
+  #           cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
+  #           ldflags: "-fsanitize=address"
+  #         - sanitizer: ubsan
+  #           cxxflags: "-fsanitize=undefined"
+  #           ldflags: "-fsanitize=undefined"
+  #   name: ${{matrix.sanitizer}}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: ./.github/actions/sanitize/mfem
+  #       with:
+  #         key: mfem-par-${{matrix.sanitizer}}
+  #         par: true
+
+  build-mfem-par-asan:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        sanitizer: [asan, ubsan]
-        include:
-          - sanitizer: asan
-            cxxflags: "-fsanitize=address -fsanitize-address-use-after-scope"
-            ldflags: "-fsanitize=address"
-          - sanitizer: ubsan
-            cxxflags: "-fsanitize=undefined"
-            ldflags: "-fsanitize=undefined"
-    name: ${{matrix.sanitizer}}
+    name: asan
+    env:
+      CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=address -fsanitize-address-use-after-scope
+      LDFLAGS: ${{env.LDFLAGS}} -fsanitize=address
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/mfem
         with:
-          key: mfem-par-${{matrix.sanitizer}}
+          key: mfem-par-asan
+          par: true
+
+  build-mfem-par-ubsan:
+    runs-on: ubuntu-latest
+    name: ubsan
+    env:
+      CXXFLAGS: ${{env.CXXFLAGS}} -fsanitize=undefined
+      LDFLAGS: ${{env.LDFLAGS}} -fsanitize=undefined
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/sanitize/mfem
+        with:
+          key: mfem-par-ubsan
           par: true
