@@ -110,8 +110,8 @@ jobs:
         working-directory: mfem/build
         run: >
           ${{env.CTEST}} tests/unit 
-          -E ${{ inputs.par && "unit_tests|debug" || "^unit_tests$|debug" }} 
-          -R ${{ inputs.par &&          "_cpu_np" || ""}} 
+          -E ${{ inputs.par && \"unit_tests|debug\" || \"^unit_tests$|debug\" }} 
+          -R ${{ inputs.par &&          \"_cpu_np\" || \"\"}} 
 
   tests-build:  
     needs: [check]
