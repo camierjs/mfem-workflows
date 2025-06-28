@@ -5,16 +5,29 @@ inputs:
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
+  sanitizer:
+    description: 'Sanitizer to use (asan, msan, ubsan)'
+    default: none # if 'none', use matrix one
+    type: string
 
 runs:
   using: 'composite'
   steps:
-    - name: LLVM Restore
+    - name: LLVM Restore (matrix:${{matrix.sanitizer}})
+      if: ${{inputs.sanitizer == 'none'}}
       uses: actions/cache/restore@v4
       with:
         path: ${{env.LLVM_DIR}}
         fail-on-cache-miss: true
         key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+
+    - name: LLVM Restore (inputs:${{inputs.sanitizer}})
+      if: ${{inputs.sanitizer != 'none'}}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{env.LLVM_DIR}}
+        fail-on-cache-miss: true
+        key: cache-llvm-${{env.LLVM_VER}}-${{inputs.sanitizer}}
   
     - name: MPI Setup
       if: ${{inputs.par == 'true'}}

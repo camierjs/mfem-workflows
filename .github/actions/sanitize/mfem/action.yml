@@ -29,6 +29,7 @@ runs:
       uses: ./.github/actions/sanitize/setup
       with:
         par: ${{inputs.par}}
+        sanitizer: ${{inputs.sanitizer}}
 
     - name: Build with ASAN
       if: inputs.sanitizer == 'asan'
