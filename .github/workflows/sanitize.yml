@@ -19,7 +19,7 @@ concurrency:
 jobs:
   #############################################################################
   build-hypre:
-    uses: ./.github/sanitize/hypre.yml${{github.sha}}
+    uses: ./.github/sanitize/hypre.yml@${{github.sha}}
 
   build-metis:
     uses: ./.github/workflows/sanitize-metis.yml
