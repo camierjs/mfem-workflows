@@ -7,7 +7,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    name: build-one
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/mfem
@@ -18,8 +17,7 @@ jobs:
           key: mfem-one
 
   check:
-    name: check-one
-    needs: [build-one]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,8 +35,7 @@ jobs:
         run: ninja -v check
 
   examples:
-    name: examples-one
-    needs: [check-one]
+    needs: [check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,8 +56,7 @@ jobs:
         run: ${{env.CTEST}} examples
 
   miniapps:
-    name: miniapps-one
-    needs: [check-one]
+    needs: [check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,8 +77,7 @@ jobs:
         run: ${{env.CTEST}} miniapps
 
   tests-miniapps:
-    name: tests-miniapps-one
-    needs: [check-one]
+    needs: [check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,8 +92,8 @@ jobs:
         run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"
 
   tests-unit-build:  
+    needs: [check]
     runs-on: ubuntu-latest
-    name: tests-unit-build-one
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -125,7 +120,8 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  test-unit:
+  test-unit-run:
+    needs: [tests-unit-build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
