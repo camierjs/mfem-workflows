@@ -31,19 +31,19 @@ jobs:
   # Serial sanitizers: asan, msan, ubsan
   seq-asan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one.yml
+    uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: asan
       key: seq-asan  
   seq-msan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one.yml
+    uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: msan
       key: seq-msan  
   seq-ubsan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize-all-in-one.yml
+    uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: ubsan
       key: seq-ubsan
@@ -51,14 +51,14 @@ jobs:
   # Parallel sanitizers: asan, ubsan
   par-asan:
     needs: [build-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize-all-in-one.yml
+    uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: asan
       key: par-asan
       par: true  
   par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize-all-in-one.yml
+    uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: ubsan
       key: par-ubsan

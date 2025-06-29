@@ -4,7 +4,7 @@ description: 'Sets up environment variables for MFEM sanitizer workflow'
 inputs:
   DEBUG:
     description: 'If true, use intermediate caches to speed up the workflow by reusing previous builds.'
-    default: false
+    default: true
 
   REPOSITORY:
     description: 'Repository to checkout, 🔥🔥🔥 Using MFEM/ubsan 🔥🔥🔥'
@@ -34,23 +34,27 @@ inputs:
 
   CTEST:
     description: 'CTest command to use, warning: the last option is the test directory to be given'
-    default: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
+    default: ctest -j --test-load $(nproc) 
+                      --schedule-random 
+                      --stop-on-failure --output-on-failure 
+                      --test-dir
 
   # https://clang.llvm.org/docs/AddressSanitizer.html
   ASAN_OPTIONS:
-    default: "detect_leaks=1,
-              strict_init_order=1,
-              strict_string_checks=1,
-              check_initialization_order=1,
-              detect_stack_use_after_return=1"
+    default: detect_leaks=1,
+             strict_init_order=1,
+             strict_string_checks=1,
+             check_initialization_order=1,
+             detect_stack_use_after_return=1
   ASAN_CXXFLAGS: 
-    default: -fsanitize=address -fsanitize-address-use-after-scope
+    default: -fsanitize=address 
+             -fsanitize-address-use-after-scope
   ASAN_LDFLAGS: 
     default: -fsanitize=address
 
   # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
   UBSAN_OPTIONS: 
-    default: "halt_on_error=1, print_stacktrace=1"
+    default: halt_on_error=1, print_stacktrace=1
   UBSAN_CXXFLAGS: 
     default: -fsanitize=undefined
   UBSAN_LDFLAGS: 
@@ -60,16 +64,18 @@ inputs:
   MSAN_OPTIONS: 
     default: "poison_in_dtor=1"
   MSAN_CXXFLAGS: 
-    default: -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor
+    default: -fsanitize=memory 
+             -fsanitize-memory-track-origins 
+             -fsanitize-memory-use-after-dtor
   MSAN_LDFLAGS: 
     default: -fsanitize=memory
 
   LSAN_DIR:
-    description: 'LSAN suppression directory'
+    description: LSAN suppression directory
     default: lsan
 
   LSAN_FILE:
-    description: 'LSAN suppression file'
+    description: LSAN suppression file
     default: lsan.supp
 
 runs:
