@@ -14,6 +14,10 @@ on:
         default: asan
         type: string
 
+defaults:
+run:
+  shell: bash
+
 jobs:
 
   build:
