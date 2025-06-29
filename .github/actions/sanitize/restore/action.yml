@@ -2,6 +2,12 @@ name: 'Restore state'
 description: 'Restore state to be able to run checks, tests'
 
 inputs:
+  par:
+    description: 'Whether to build for parallel (true/false)'
+    default: false
+  sanitizer:
+    description: 'Sanitizer to use (asan, msan, ubsan)'
+    default: 'asan'
   cache-key:
     description: 'Key for the cache/upload, can be left to none if not needed'
     default: none
@@ -14,12 +20,6 @@ inputs:
   artifact-path:
     description: 'path to what needs to be restored'
     default: mfem/build
-  par:
-    description: 'Whether to build for parallel (true/false)'
-    default: false
-  sanitizer:
-    description: 'Sanitizer to use (asan, msan, ubsan)'
-    default: 'asan'
     
 outputs:
   cache-hit:

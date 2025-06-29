@@ -1,4 +1,4 @@
-name: "Sanitizers"
+name: Sanitizers
 
 permissions:
   actions: write
@@ -18,10 +18,13 @@ jobs:
   # Build steps for dependencies
   build-hypre:
     uses: ./.github/workflows/sanitize-build-hypre.yml
+  
   build-metis:
     uses: ./.github/workflows/sanitize-build-metis.yml
+  
   build-lsan:
     uses: ./.github/workflows/sanitize-build-lsan.yml
+  
   build-libcxx:
     uses: ./.github/workflows/sanitize-build-libcxx.yml
 
@@ -31,32 +34,29 @@ jobs:
     uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: asan
-      key: seq-asan  
+  
   seq-msan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: msan
-      key: seq-msan  
+  
   seq-ubsan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: ubsan
-      key: seq-ubsan
 
   # Parallel sanitizers: asan, ubsan
   par-asan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize.yml
     with:
-      sanitizer: asan
-      key: par-asan
       par: true  
+      sanitizer: asan
   par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize.yml
     with:
-      sanitizer: ubsan
-      key: par-ubsan
       par: true
+      sanitizer: ubsan

@@ -2,9 +2,6 @@ name: 'MFEM Compilation'
 description: 'MFEM Compilation'
 
 inputs:
-  key:
-    description: 'Key for the cache/upload'
-    default: none
   par:
     description: 'Whether to build for parallel (true/false)'
     default: false
@@ -22,7 +19,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: mfem/build
-        key: cache-${{inputs.key}}
+        key: build-${{inputs.par}}-${{inputs.sanitizer}}
 
     - name: Setup
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
@@ -49,9 +46,6 @@ runs:
     - name: MFEM Build
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
       uses: mfem/github-actions/build-mfem@v2.5
-      # env: # matrix.* could be removed if not used anymore
-      #   CXXFLAGS: ${{matrix.cxxflags}} ${{env.CXXFLAGS}} 
-      #   LDFLAGS:   ${{matrix.ldflags}}  ${{env.LDFLAGS}}
       env:
         CXXFLAGS: ${{env.CXXFLAGS}}
         LDFLAGS: ${{env.LDFLAGS}}
@@ -82,7 +76,7 @@ runs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: ${{inputs.key}}
+        name: build-${{inputs.par}}-${{inputs.sanitizer}}
         path: mfem/build
         if-no-files-found: error
         retention-days: 1
