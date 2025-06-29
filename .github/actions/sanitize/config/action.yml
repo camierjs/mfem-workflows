@@ -34,7 +34,7 @@ inputs:
 
   CTEST:
     description: 'CTest command to use, warning: the last option is the test directory to be given'
-    default: ctest -j --test-load $(nproc) --schedule-random --stop-on-failure --output-on-failure --test-dir
+    default: ctest -j --test-load $(nproc) --schedule-random --output-on-failure --test-dir
 
   # https://clang.llvm.org/docs/AddressSanitizer.html
   ASAN_OPTIONS:
