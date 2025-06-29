@@ -37,7 +37,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: ${{job.name}}-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/examples/${{env.ex}}
       - name: MFEM Check
         if: ${{steps.check.outputs.cache-hit != 'true'}}
@@ -58,7 +58,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: examples-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/examples/ex1
       - name: Build Examples
         if: ${{steps.examples.outputs.cache-hit != 'true'}}
@@ -85,7 +85,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: miniapps-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/miniapps/meshing/minimal-surface
       - name: Build Miniapps
         if: ${{steps.miniapps.outputs.cache-hit != 'true'}}
@@ -111,7 +111,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: tests-miniapps-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/sedov_tests_cpu
       - name: Build Tests Unit Miniapps
         if: ${{steps.tests-miniapps.outputs.cache-hit != 'true'}}
@@ -137,7 +137,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: tests-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/${{env.unit_tests}}
       - name: Build Unit Tests
         if: ${{steps.restore.outputs.cache-hit != 'true'}}
@@ -173,7 +173,7 @@ jobs:
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: tests-runs-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/${{env.unit_tests}}
       - name: Restore Unit Tests
         if: ${{steps.tests-runs.outputs.cache-hit != 'true'}}
