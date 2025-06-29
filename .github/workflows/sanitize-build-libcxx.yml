@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LLVM_DIR}}
-          key: cache-llvm-${{env.LLVM_VER}}-${{matrix.sanitizer}}
+          key: build-libcxx-${{env.LLVM_VER}}-${{matrix.sanitizer}}
       - name: Clone
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: >

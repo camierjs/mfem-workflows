@@ -13,7 +13,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.LSAN_DIR}}
-          key: cache-lsan-suppression-file
+          key: build-lsan-suppression-file
       - name: Setup
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
