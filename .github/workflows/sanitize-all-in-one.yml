@@ -33,6 +33,8 @@ jobs:
   check:
     needs: [build]
     runs-on: ubuntu-latest
+    env:
+      ex: ${{ inputs.par && 'ex1p' || 'ex1' }}
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -41,7 +43,7 @@ jobs:
         with:
           build-key: build-${{inputs.key}}
           cache-key: check-${{inputs.key}}
-          cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
+          cache-path: mfem/build/examples/${{env.ex}}
           sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: MFEM Check
@@ -60,7 +62,7 @@ jobs:
         with:
           build-key: build-${{inputs.key}}
           cache-key: examples-${{inputs.key}}
-          cache-path: mfem/build/examples/ex1 # ex1p, could be set in config
+          cache-path: mfem/build/examples/ex1
           sanitizer: ${{inputs.sanitizer}}
           par: ${{inputs.par}}
       - name: Build Examples

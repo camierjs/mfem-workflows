@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   
+  # Build steps for dependencies
   build-hypre:
     uses: ./.github/workflows/sanitize-build-hypre.yml
   build-metis:
@@ -27,70 +28,19 @@ jobs:
   build-libcxx:
     uses: ./.github/workflows/sanitize-build-libcxx.yml
 
-  # build-mfem-par:
-  #   needs: [build-libcxx, build-hypre, build-metis]
-  #   uses: ./.github/workflows/sanitize-build-mfem-par.yml
-  # build-mfem-seq:
-  #   needs: [build-libcxx]
-  #   uses: ./.github/workflows/sanitize-build-mfem-seq.yml
-
-  # check-par:
-  #   needs: [build-lsan, build-libcxx, build-mfem-par]
-  #   uses: ./.github/workflows/sanitize-check-par.yml
-  # check-seq:
-  #   needs: [build-lsan, build-libcxx, build-mfem-seq]
-  #   uses: ./.github/workflows/sanitize-check-seq.yml
-
-  # examples-par:
-  #   needs: [build-lsan, build-libcxx, check-par]
-  #   uses: ./.github/workflows/sanitize-examples-par.yml
-  # examples-seq:
-  #   needs: [build-lsan, build-libcxx, check-seq]
-  #   uses: ./.github/workflows/sanitize-examples-seq.yml
-
-  # miniapps-par:
-  #   needs: [build-lsan, build-libcxx, check-par]
-  #   uses: ./.github/workflows/sanitize-miniapps-par.yml
-  # miniapps-seq:
-  #   needs: [build-lsan, build-libcxx, check-seq]
-  #   uses: ./.github/workflows/sanitize-miniapps-seq.yml
-
-  # tests-miniapps-par:
-  #   needs: [build-lsan, build-libcxx, check-par]
-  #   uses: ./.github/workflows/sanitize-tests-miniapps-par.yml
-  # tests-miniapps-seq:
-  #   needs: [build-lsan, build-libcxx, check-seq]
-  #   uses: ./.github/workflows/sanitize-tests-miniapps-seq.yml
-
-  # tests-unit-build-par:
-  #   needs: [build-lsan, build-libcxx, check-par]
-  #   uses: ./.github/workflows/sanitize-tests-unit-build-par.yml
-  # tests-unit-build-seq:
-  #   needs: [build-lsan, build-libcxx, check-seq]
-  #   uses: ./.github/workflows/sanitize-tests-unit-build-seq.yml
-
-  # tests-unit-run-par:
-  #   needs: [build-lsan, build-libcxx, tests-unit-build-par]
-  #   uses: ./.github/workflows/sanitize-tests-unit-run-par.yml
-  # tests-unit-run-seq:
-  #   needs: [build-lsan, build-libcxx, tests-unit-build-seq]
-  #   uses: ./.github/workflows/sanitize-tests-unit-run-seq.yml
-
-  # Serial sanitizers
+  # Serial sanitizers: asan, msan, ubsan
   seq-asan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       sanitizer: asan
-      key: seq-asan
-  
+      key: seq-asan  
   seq-msan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       sanitizer: msan
-      key: seq-msan
-  
+      key: seq-msan  
   seq-ubsan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize-all-in-one.yml
@@ -98,15 +48,14 @@ jobs:
       sanitizer: ubsan
       key: seq-ubsan
 
-  # Parallel sanitizers
+  # Parallel sanitizers: asan, ubsan
   par-asan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
       sanitizer: asan
       key: par-asan
-      par: true
-  
+      par: true  
   par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-all-in-one.yml
