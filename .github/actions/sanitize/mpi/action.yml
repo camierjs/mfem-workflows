@@ -3,8 +3,8 @@ description: 'Installs MPI and set up its environment variables for MFEM sanitiz
 
 runs:
   using: 'composite'
-  steps:  
-    - name: Install 
+  steps:
+    - name: Install
       run: sudo apt-get install openmpi-bin libopenmpi-dev
       shell: bash
 

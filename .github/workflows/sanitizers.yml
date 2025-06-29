@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [main]
+    branches: [main]  # ["master", "next"]
   pull_request:
   workflow_dispatch:
 
@@ -14,17 +14,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  
+
   # Build steps for dependencies
   build-hypre:
     uses: ./.github/workflows/sanitize-build-hypre.yml
-  
+
   build-metis:
     uses: ./.github/workflows/sanitize-build-metis.yml
-  
+
   build-lsan:
     uses: ./.github/workflows/sanitize-build-lsan.yml
-  
+
   build-libcxx:
     uses: ./.github/workflows/sanitize-build-libcxx.yml
 
@@ -34,13 +34,13 @@ jobs:
     uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: asan
-  
+
   seq-msan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize.yml
     with:
       sanitizer: msan
-  
+
   seq-ubsan:
     needs: [build-libcxx]
     uses: ./.github/workflows/sanitize.yml
@@ -52,7 +52,7 @@ jobs:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize.yml
     with:
-      par: true  
+      par: true
       sanitizer: asan
   par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]

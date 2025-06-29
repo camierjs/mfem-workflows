@@ -8,11 +8,13 @@ inputs:
   sanitizer:
     description: 'Sanitizer to use (asan, msan, ubsan)'
     default: asan
-  # cache-path can be set to 'none' to skip cache restoration
   cache-path:
     description: 'path to what needs to be restored'
     default: none
-    
+  cache-skip:
+    description: 'Skip cache restoration'
+    default: false
+
 outputs:
   cache-hit:
     description: 'Output from a specific step'
@@ -24,8 +26,8 @@ runs:
     - uses: ./.github/actions/sanitize/config
 
     - uses: actions/cache@v4
-      if: ${{env.DEBUG == 'true' && inputs.cache-path != 'none'}}
-      id: debug      
+      if: ${{env.DEBUG == 'true' && inputs.cache-skip != 'true'}}
+      id: debug
       with:
         path: ${{inputs.cache-path}}
         key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}}

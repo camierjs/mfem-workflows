@@ -1,42 +1,43 @@
-name: 'Sanitizer Config'
-description: 'Sets up environment variables for MFEM sanitizer workflow'
+---
+name: Sanitizer Config
+description: Sets up environment variables for MFEM sanitizer workflow
 
 inputs:
   DEBUG:
-    description: 'If true, use intermediate caches to speed up the workflow by reusing previous builds.'
+    description: If true, use intermediate caches to speed up the workflow by reusing previous builds.
     default: true
 
   REPOSITORY:
-    description: 'Repository to checkout, 🔥🔥🔥 Using MFEM/ubsan 🔥🔥🔥'
-    default: mfem/mfem 
- 
+    description: Repository to checkout
+    default: mfem/mfem
+
   BRANCH:
-    description: 'Branch to checkout'
+    description: Branch to checkout
     default: ubsan
 
   CLANG_VER:
-    description: 'CLANG version to use'
+    description: CLANG version to use
     default: 18
 
   # https://github.com/llvm/llvm-project/releases
   LLVM_VER:
-    description: 'LLVM version to use'
+    description: LLVM version to use
     default: 19.1.7
 
   # https://github.com/hypre-space/hypre/releases
   HYPRE_VER:
-    description: 'HYPRE version to use'
+    description: HYPRE version to use
     default: 2.19.0
 
   METIS_VER:
-    description: 'METIS version to use'
+    description: METIS version to use
     default: 4.0.3
 
   CTEST:
     description: 'CTest command to use, warning: the last option is the test directory to be given'
-    default: ctest -j --test-load $(nproc) 
-                      --schedule-random 
-                      --stop-on-failure --output-on-failure 
+    default: ctest -j --test-load $(nproc)
+                      --schedule-random
+                      --stop-on-failure --output-on-failure
                       --test-dir
 
   # https://clang.llvm.org/docs/AddressSanitizer.html
@@ -46,28 +47,28 @@ inputs:
              strict_string_checks=1,
              check_initialization_order=1,
              detect_stack_use_after_return=1
-  ASAN_CXXFLAGS: 
-    default: -fsanitize=address 
+  ASAN_CXXFLAGS:
+    default: -fsanitize=address
              -fsanitize-address-use-after-scope
-  ASAN_LDFLAGS: 
+  ASAN_LDFLAGS:
     default: -fsanitize=address
 
   # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
-  UBSAN_OPTIONS: 
+  UBSAN_OPTIONS:
     default: halt_on_error=1, print_stacktrace=1
-  UBSAN_CXXFLAGS: 
+  UBSAN_CXXFLAGS:
     default: -fsanitize=undefined
-  UBSAN_LDFLAGS: 
+  UBSAN_LDFLAGS:
     default: -fsanitize=undefined
 
   # https://clang.llvm.org/docs/MemorySanitizer.html
-  MSAN_OPTIONS: 
+  MSAN_OPTIONS:
     default: "poison_in_dtor=1"
-  MSAN_CXXFLAGS: 
-    default: -fsanitize=memory 
-             -fsanitize-memory-track-origins 
+  MSAN_CXXFLAGS:
+    default: -fsanitize=memory
+             -fsanitize-memory-track-origins
              -fsanitize-memory-use-after-dtor
-  MSAN_LDFLAGS: 
+  MSAN_LDFLAGS:
     default: -fsanitize=memory
 
   LSAN_DIR:
@@ -79,7 +80,7 @@ inputs:
     default: lsan.supp
 
   NO_FLAGS:
-    description: 'If true, do not set any CXXFLAGS or LDFLAGS.'
+    description: If true, do not set any CXXFLAGS or LDFLAGS.
     default: false
 
 runs:

@@ -26,4 +26,3 @@ jobs:
           target: int32
           precision: fp64
           build-system: make
-

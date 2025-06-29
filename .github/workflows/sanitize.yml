@@ -1,5 +1,4 @@
 name: Sanitize
-
 on:
   workflow_call:
     inputs:
@@ -15,7 +14,6 @@ on:
         type: string
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +41,6 @@ jobs:
         working-directory: mfem/build
         run: ninja -v check
 
-  # 🔥🔥🔥 Could we compile only the parallel examples when parallel?
   examples:
     needs: [check]
     runs-on: ubuntu-latest
@@ -68,7 +65,6 @@ jobs:
           ${{env.CTEST}} examples ${{env.exclude}} --show-only
           ${{env.CTEST}} examples ${{env.exclude}}
 
-  # 🔥🔥🔥 Could we compile only the parallel miniapps when parallel?
   miniapps:
     needs: [check]
     runs-on: ubuntu-latest
@@ -148,7 +144,6 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  # 🔥🔥🔥 Could filter 'punit_tests_np=2' only in parallel?
   tests-unit-run:
     needs: [tests-unit-build]
     runs-on: ubuntu-latest
@@ -185,4 +180,3 @@ jobs:
         run: |
           ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}" --show-only
           ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}"
-
