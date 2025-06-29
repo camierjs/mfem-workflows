@@ -4,12 +4,9 @@ permissions:
   actions: write
 
 on:
-  # Run on pushes to main development branches
   push:
     branches: [main]
-  # Run on all pull requests
   pull_request:
-  # Allow manual triggering for debugging
   workflow_dispatch:
 
 concurrency:
