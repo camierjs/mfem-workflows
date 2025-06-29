@@ -187,7 +187,7 @@ jobs:
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: Cat Unit Tests ${{matrix.tag}}
         if: ${{steps.restore.outputs.cache-hit != 'true'}}
-        working-directory: mfem/build
+        working-directory: mfem/build/tests/unit
         run: cat list-test-names-${{matrix.tag}}
       - name: Run Unit Tests ${{matrix.tag}}
         if: ${{steps.restore.outputs.cache-hit != 'true'}}
