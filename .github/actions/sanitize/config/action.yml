@@ -79,7 +79,7 @@ inputs:
     default: lsan.supp
 
   NO_FLAGS:
-    description: 'If true, do not set any flags'
+    description: 'If true, do not set any CXXFLAGS or LDFLAGS.'
     default: false
 
 runs:
