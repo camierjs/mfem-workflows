@@ -30,6 +30,7 @@ jobs:
           key: build-${{inputs.key}} # build-seq-asan, build-par-ubsan
           par: ${{inputs.par}}
 
+  # 🔥🔥🔥 cache check in parallel ?
   check:
     needs: [build]
     runs-on: ubuntu-latest
@@ -51,6 +52,8 @@ jobs:
         working-directory: mfem/build
         run: ninja -v check
 
+  # 🔥🔥🔥 Could we compile only the parallel examples when parallel?
+  # 🔥🔥🔥 We should filter out the "_ser" ones when parallel!
   examples:
     needs: [check]
     runs-on: ubuntu-latest
@@ -74,6 +77,8 @@ jobs:
         working-directory: mfem/build
         run: ${{env.CTEST}} examples
 
+  # 🔥🔥🔥 Could we compile only the parallel miniapps when parallel?
+  # 🔥🔥🔥 We should filter out the "_ser" ones when parallel!
   miniapps:
     needs: [check]
     runs-on: ubuntu-latest
@@ -152,6 +157,7 @@ jobs:
           retention-days: 1
           overwrite: false
 
+  # 🔥🔥🔥 could dump the tests list before running
   tests-unit-run:
     needs: [tests-unit-build]
     runs-on: ubuntu-latest
