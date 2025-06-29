@@ -8,9 +8,9 @@ inputs:
   sanitizer:
     description: 'Sanitizer to use (asan, msan, ubsan)'
     default: 'asan'
-  cache-key:
-    description: 'Key for the cache/upload, can be left to none if not needed'
-    default: none
+  # cache-key:
+  #   description: 'Key for the cache/upload, can be left to none if not needed'
+  #   default: none
   cache-path:
     description: 'path to what needs to be restored'
     default: none
@@ -24,13 +24,12 @@ runs:
   using: 'composite'
   steps:
     - uses: ./.github/actions/sanitize/config
-    - name: Cache
-      if: ${{env.DEBUG == 'true' && inputs.cache-key != 'none'}}
-      id: debug
-      uses: actions/cache@v4
+    - uses: actions/cache@v4
+      if: ${{env.DEBUG == 'true'}}
+      id: debug      
       with:
         path: ${{inputs.cache-path}}
-        key: ${{inputs.cache-key}}
+        key: ${{github.job}}-${{inputs.par}}-${{inputs.sanitizer}} # ${{inputs.cache-key}}
 
     - name: Setup
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
