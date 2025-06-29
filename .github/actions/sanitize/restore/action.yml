@@ -14,12 +14,6 @@ inputs:
   cache-path:
     description: 'path to what needs to be restored'
     default: none
-  build-key:
-    description: 'Name of the artifact to download'
-    default: none
-  artifact-path:
-    description: 'path to what needs to be restored'
-    default: mfem/build
     
 outputs:
   cache-hit:
@@ -45,11 +39,11 @@ runs:
         par: ${{inputs.par}}
         sanitizer: ${{inputs.sanitizer}}
 
-    - name: Download artifact
+    - name: Download BUILD artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{inputs.build-key}}
-        path: ${{inputs.artifact-path}}
+        name: build-${{inputs.par}}-${{inputs.sanitizer}}
+        path: mfem/build
 
     - name: Ninja Patch
       working-directory: mfem/build
