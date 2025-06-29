@@ -30,7 +30,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ${{inputs.cache-path}}
-        key: cache-${{inputs.cache-key}}
+        key: ${{inputs.cache-key}}
 
     - name: Setup
       if: ${{steps.debug.outputs.cache-hit != 'true'}}

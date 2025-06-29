@@ -32,13 +32,12 @@ jobs:
       ex: ${{inputs.par && 'ex1p' || 'ex1'}}
     steps:
       - uses: actions/checkout@v4
-      - name: Restore
+      - uses: ./.github/actions/sanitize/restore
         id: check
-        uses: ./.github/actions/sanitize/restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
-          cache-key: check-${{inputs.par}}-${{inputs.sanitizer}}
+          cache-key: ${{job.name}}-${{inputs.par}}-${{inputs.sanitizer}}
           cache-path: mfem/build/examples/${{env.ex}}
       - name: MFEM Check
         if: ${{steps.check.outputs.cache-hit != 'true'}}
