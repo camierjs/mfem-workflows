@@ -16,7 +16,7 @@ inputs:
   DEBUG:
     description: If true, use intermediate caches to speed up the workflow
                  by reusing previous builds.
-    default: false
+    default: true
 
   REPOSITORY:
     description: Repository to checkout
