@@ -51,9 +51,8 @@ jobs:
       exclude: ${{inputs.par && '-E "_ser"' || ''}}
     steps:
       - uses: actions/checkout@v4
-      - name: Restore
+      - uses: ./.github/actions/sanitize/restore
         id: examples
-        uses: ./.github/actions/sanitize/restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
@@ -99,8 +98,8 @@ jobs:
     needs: [check]
     runs-on: ubuntu-latest
     env:
-      exclude: ${{inputs.par && '"unit_tests|debug"' || '"^unit_tests$|debug"'}}
       run: ${{inputs.par && '-R "_cpu_np"' || ''}}
+      exclude: ${{inputs.par && '"unit_tests|debug"' || '"^unit_tests$|debug"'}}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
@@ -127,9 +126,8 @@ jobs:
       unit_tests: ${{inputs.par && 'punit_tests' || 'unit_tests'}}
     steps:
       - uses: actions/checkout@v4
-      - name: Restore
+      - uses: ./.github/actions/sanitize/restore
         id: restore
-        uses: ./.github/actions/sanitize/restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
@@ -142,8 +140,7 @@ jobs:
         if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build/tests/unit
         run: find . -type f -name '*.o' -delete
-      - name: Upload
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: tests-${{inputs.par}}-${{inputs.sanitizer}}
           path: mfem/build/tests/unit/${{env.unit_tests}}
@@ -169,9 +166,8 @@ jobs:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/${{env.unit_tests}}
-      - name: Restore Unit Tests
+      - uses: actions/download-artifact@v4
         if: ${{steps.tests-runs.outputs.cache-hit != 'true'}}
-        uses: actions/download-artifact@v4
         with:
           name: tests-${{inputs.par}}-${{inputs.sanitizer}}
           path: mfem/build/tests/unit

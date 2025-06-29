@@ -7,7 +7,7 @@ inputs:
     default: false
   sanitizer:
     description: 'Sanitizer to use (asan, msan, ubsan)'
-    default: none
+    default: asan
 
 runs:
   using: 'composite'

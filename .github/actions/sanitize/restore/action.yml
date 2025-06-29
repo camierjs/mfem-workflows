@@ -7,7 +7,8 @@ inputs:
     default: false
   sanitizer:
     description: 'Sanitizer to use (asan, msan, ubsan)'
-    default: 'asan'
+    default: asan
+  # cache-path can be set to 'none' to skip cache restoration
   cache-path:
     description: 'path to what needs to be restored'
     default: none
@@ -23,7 +24,7 @@ runs:
     - uses: ./.github/actions/sanitize/config
 
     - uses: actions/cache@v4
-      if: ${{env.DEBUG == 'true'}}
+      if: ${{env.DEBUG == 'true' && inputs.cache-path != 'none'}}
       id: debug      
       with:
         path: ${{inputs.cache-path}}
