@@ -135,18 +135,15 @@ runs:
         echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
         echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
         echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz >> $GITHUB_ENV
-        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/
-             ${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        LSAN_SUPPRESSIONS="${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}}"
+        echo "LSAN_OPTIONS=suppressions=$LSAN_SUPPRESSIONS" >> $GITHUB_ENV
       shell: bash
 
     - name: Env (ter)
       if: ${{ inputs.NO_FLAGS != 'true' }}
       run: |
-        echo LLVM_CXXFLAGS=-stdlib=libc++
-             -I${{env.LLVM_INC}} 
-             -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
-        echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi 
-             -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
+        echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
+        echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (quater)
