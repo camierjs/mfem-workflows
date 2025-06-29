@@ -27,10 +27,9 @@ jobs:
       - uses: ./.github/actions/sanitize/mfem
         with:
           sanitizer: ${{inputs.sanitizer}}
-          key: build-${{inputs.key}} # build-seq-asan, build-par-ubsan
+          key: build-${{inputs.key}}
           par: ${{inputs.par}}
 
-  # 🔥🔥🔥 cache check in parallel ?
   check:
     needs: [build]
     runs-on: ubuntu-latest
@@ -53,10 +52,11 @@ jobs:
         run: ninja -v check
 
   # 🔥🔥🔥 Could we compile only the parallel examples when parallel?
-  # 🔥🔥🔥 We should filter out the "_ser" ones when parallel!
   examples:
     needs: [check]
     runs-on: ubuntu-latest
+    env:
+      exclude: ${{ inputs.par && '-E "_ser"' || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -75,13 +75,16 @@ jobs:
       - name: Test Examples
         if: ${{ steps.examples.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ${{env.CTEST}} examples
+        run: |
+          ${{env.CTEST}} examples ${{env.exclude}} --show-only
+          ${{env.CTEST}} examples ${{env.exclude}}
 
   # 🔥🔥🔥 Could we compile only the parallel miniapps when parallel?
-  # 🔥🔥🔥 We should filter out the "_ser" ones when parallel!
   miniapps:
     needs: [check]
     runs-on: ubuntu-latest
+    env:
+      exclude: ${{ inputs.par && '-E "_ser"' || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Restore
@@ -100,11 +103,16 @@ jobs:
       - name: Test Miniapps
         if: ${{ steps.miniapps.outputs.cache-hit != 'true' }}
         working-directory: mfem/build
-        run: ${{env.CTEST}} miniapps
+        run: |
+          ${{env.CTEST}} miniapps ${{env.exclude}} --show-only
+          ${{env.CTEST}} miniapps ${{env.exclude}}
 
   tests-miniapps:
     needs: [check]
     runs-on: ubuntu-latest
+    env:
+      exclude: ${{ inputs.par && '"unit_tests|debug"' || '"^unit_tests$|debug"' }}
+      run: ${{ inputs.par && '-R "_cpu_np"' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
@@ -115,14 +123,11 @@ jobs:
       - name: Build Tests Unit Miniapps
         working-directory: mfem/build
         run: ninja -v tests/unit/all
-      - name: Run Tests Unit Miniapps (Serial)
-        if: ${{ !inputs.par }}
+      - name: Run Tests Unit Miniapps
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "^unit_tests$|debug"
-      - name: Run Tests Unit Miniapps (Parallel)
-        if: ${{ inputs.par }}
-        working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -E "unit_tests|debug" -R "_cpu_np"
+        run: |
+          ${{env.CTEST}} tests/unit -E ${{env.exclude}} ${{env.run}} --show-only
+          ${{env.CTEST}} tests/unit -E ${{env.exclude}} ${{env.run}}
 
   tests-unit-build:
     needs: [check]
@@ -157,7 +162,6 @@ jobs:
           retention-days: 1
           overwrite: false
 
-  # 🔥🔥🔥 could dump the tests list before running
   tests-unit-run:
     needs: [tests-unit-build]
     runs-on: ubuntu-latest
@@ -188,5 +192,7 @@ jobs:
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: Run Unit Tests ${{matrix.tag}}
         working-directory: mfem/build
-        run: ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}"
+        run: |
+          ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}" --show-only
+          ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}"
 
