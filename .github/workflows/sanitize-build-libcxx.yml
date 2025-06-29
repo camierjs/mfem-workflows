@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/config
+        with:
+          NO_FLAGS: true
       - name: Cache
         id: cache
         uses: actions/cache@v4
