@@ -10,7 +10,7 @@
 # CONTRIBUTING.md for details.
 ---
 name: 'Install MPI'
-description: 'Installs MPI and set up its environment variables for MFEM sanitizer workflow'
+description: 'Installs MPI and set up its environment variables'
 
 runs:
   using: 'composite'

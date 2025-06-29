@@ -14,7 +14,8 @@ description: Sets up environment variables for MFEM sanitizer workflow
 
 inputs:
   DEBUG:
-    description: If true, use intermediate caches to speed up the workflow by reusing previous builds.
+    description: If true, use intermediate caches to speed up the workflow
+                 by reusing previous builds.
     default: true
 
   REPOSITORY:
@@ -44,7 +45,7 @@ inputs:
     default: 4.0.3
 
   CTEST:
-    description: 'CTest command to use, warning: the last option is the test directory to be given'
+    description: CTest command to use
     default: ctest -j --test-load $(nproc)
                       --schedule-random
                       --stop-on-failure --output-on-failure
@@ -134,14 +135,18 @@ runs:
         echo LLVM_LIB=${{env.LLVM_DIR}}/lib >> $GITHUB_ENV
         echo HYPRE_TGZ=v${{inputs.HYPRE_VER}}.tar.gz >> $GITHUB_ENV
         echo METIS_TGZ=metis-${{inputs.METIS_VER}}.tar.gz >> $GITHUB_ENV
-        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
+        echo LSAN_OPTIONS=suppressions=${{github.workspace}}/
+             ${{inputs.LSAN_DIR}}/${{inputs.LSAN_FILE}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (ter)
       if: ${{ inputs.NO_FLAGS != 'true' }}
       run: |
-        echo LLVM_CXXFLAGS=-stdlib=libc++ -I${{env.LLVM_INC}} -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
-        echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
+        echo LLVM_CXXFLAGS=-stdlib=libc++
+             -I${{env.LLVM_INC}} 
+             -Isystem${{env.LLVM_INC}} >> $GITHUB_ENV
+        echo LLVM_LDFLAGS=-L${{env.LLVM_LIB}} -lc++abi 
+             -Wl,-rpath,${{env.LLVM_LIB}} >> $GITHUB_ENV
       shell: bash
 
     - name: Env (quater)
