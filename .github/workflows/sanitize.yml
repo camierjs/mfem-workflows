@@ -107,10 +107,10 @@ jobs:
       key: par-asan
       par: true
   
-  par-msan:
+  par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]
     uses: ./.github/workflows/sanitize-all-in-one.yml
     with:
-      sanitizer: msan
-      key: par-msan
+      sanitizer: ubsan
+      key: par-ubsan
       par: true

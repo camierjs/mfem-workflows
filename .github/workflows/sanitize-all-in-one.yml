@@ -156,7 +156,7 @@ jobs:
     strategy:
       matrix:
         tag: [0, 1, 2, 3]
-    name: tests-${{matrix.tag}}
+    name: tests-unit-run-${{matrix.tag}}
     env:
       unit_tests: ${{ inputs.par && 'punit_tests' || 'unit_tests' }}
     steps:
