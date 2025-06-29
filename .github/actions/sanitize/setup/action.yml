@@ -12,28 +12,24 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: LLVM Restore
-      uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v4
       with:
         path: ${{env.LLVM_DIR}}
         fail-on-cache-miss: true
         key: build-libcxx-${{env.LLVM_VER}}-${{inputs.sanitizer}}
   
-    - name: MPI Setup
-      if: ${{inputs.par == 'true'}}
-      uses: ./.github/actions/sanitize/mpi
+    - uses: ./.github/actions/sanitize/mpi
+      if: ${{inputs.par == 'true'}}      
 
-    - name: HYPRE Restore
+    - uses: actions/cache/restore@v4
       if: ${{inputs.par == 'true'}}
-      uses: actions/cache/restore@v4
       with:
         path: ${{env.HYPRE_DIR}}
         fail-on-cache-miss: true
         key: ${{runner.os}}-ompi-build-${{env.HYPRE_DIR}}-int32-fp64-v2.5
   
-    - name: METIS Restore
+    - uses: actions/cache/restore@v4
       if: ${{inputs.par == 'true'}}
-      uses: actions/cache/restore@v4
       with:
         path: ${{env.METIS_DIR}}
         fail-on-cache-miss: true
@@ -44,15 +40,13 @@ runs:
       run: ln -s -f ${{env.HYPRE_DIR}} hypre && ln -s -f ${{env.METIS_DIR}} metis-4.0
       shell: bash
 
-    - name: LSAN Restore
-      uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v4
       with:
         path: ${{env.LSAN_DIR}}
         fail-on-cache-miss: true
         key: build-lsan-suppression-file  
 
-    - name: MFEM Checkout (${{env.REPOSITORY}}/${{env.BRANCH}})
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         path: mfem
         ref: ${{env.BRANCH}}

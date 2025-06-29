@@ -20,9 +20,8 @@ runs:
         path: mfem/build
         key: build-${{inputs.par}}-${{inputs.sanitizer}}
 
-    - name: Setup
+    - uses: ./.github/actions/sanitize/setup
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
-      uses: ./.github/actions/sanitize/setup
       with:
         par: ${{inputs.par}}
         sanitizer: ${{inputs.sanitizer}}
@@ -42,9 +41,8 @@ runs:
       run: echo CXXFLAGS=${{env.CXXFLAGS}} ${{env.UBSAN_CXXFLAGS}} >> $GITHUB_ENV
       shell: bash
 
-    - name: MFEM Build
+    - uses: mfem/github-actions/build-mfem@v2.5
       if: ${{steps.debug.outputs.cache-hit != 'true'}}
-      uses: mfem/github-actions/build-mfem@v2.5
       env:
         CXXFLAGS: ${{env.CXXFLAGS}}
         LDFLAGS: ${{env.LDFLAGS}}
@@ -72,8 +70,7 @@ runs:
       run: find . -type f -name '*.o' -delete
       shell: bash
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: build-${{inputs.par}}-${{inputs.sanitizer}}
         path: mfem/build
