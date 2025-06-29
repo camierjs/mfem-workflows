@@ -42,13 +42,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
-        id: check
+        id: restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/examples/${{env.ex}}
       - name: MFEM Check
-        if: ${{steps.check.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: ninja -v check
 
@@ -60,17 +60,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
-        id: examples
+        id: restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/examples/ex1
       - name: Build Examples
-        if: ${{steps.examples.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: ninja -v examples
       - name: Test Examples
-        if: ${{steps.examples.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: |
           ${{env.CTEST}} examples ${{env.exclude}} --show-only
@@ -83,19 +83,18 @@ jobs:
       exclude: ${{inputs.par && '-E "_ser"' || ''}}
     steps:
       - uses: actions/checkout@v4
-      - name: Restore
-        id: miniapps
-        uses: ./.github/actions/sanitize/restore
+      - uses: ./.github/actions/sanitize/restore
+        id: restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/miniapps/meshing/minimal-surface
       - name: Build Miniapps
-        if: ${{steps.miniapps.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: ninja -v miniapps
       - name: Test Miniapps
-        if: ${{steps.miniapps.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: |
           ${{env.CTEST}} miniapps ${{env.exclude}} --show-only
@@ -110,17 +109,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
-        id: tests-miniapps
+        id: restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/sedov_tests_cpu
       - name: Build Tests Unit Miniapps
-        if: ${{steps.tests-miniapps.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: ninja -v tests/unit/all
       - name: Run Tests Unit Miniapps
-        if: ${{steps.tests-miniapps.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: |
           ${{env.CTEST}} tests/unit -E ${{env.exclude}} ${{env.run}} --show-only
@@ -167,18 +166,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/sanitize/restore
-        id: tests-runs
+        id: restore
         with:
           par: ${{inputs.par}}
           sanitizer: ${{inputs.sanitizer}}
           cache-path: mfem/build/tests/unit/${{env.unit_tests}}
       - uses: actions/download-artifact@v4
-        if: ${{steps.tests-runs.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         with:
           name: tests-${{inputs.par}}-${{inputs.sanitizer}}
           path: mfem/build/tests/unit
       - name: Split Unit Tests
-        if: ${{steps.tests-runs.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build/tests/unit
         run: |
           chmod 755 ${{env.unit_tests}}
@@ -186,7 +185,7 @@ jobs:
           shuf list-test-names -o list-test-names
           split --verbose -n l/4 -d -a 1 list-test-names list-test-names-
       - name: Run Unit Tests ${{matrix.tag}}
-        if: ${{steps.tests-runs.outputs.cache-hit != 'true'}}
+        if: ${{steps.restore.outputs.cache-hit != 'true'}}
         working-directory: mfem/build
         run: |
           ${{env.CTEST}} tests/unit -R "${{env.unit_tests}}" --show-only
