@@ -14,11 +14,11 @@ on:
         default: asan
         type: string
 
+jobs:
+
 defaults:
 run:
   shell: bash
-
-jobs:
 
   build:
     runs-on: ubuntu-latest
