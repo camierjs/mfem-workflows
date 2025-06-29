@@ -42,32 +42,32 @@ jobs:
   # Serial sanitizers: asan, msan, ubsan
   seq-asan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize.yml
+    uses: ./.github/workflows/sanitize-tests.yml
     with:
       sanitizer: asan
 
   seq-msan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize.yml
+    uses: ./.github/workflows/sanitize-tests.yml
     with:
       sanitizer: msan
 
   seq-ubsan:
     needs: [build-libcxx]
-    uses: ./.github/workflows/sanitize.yml
+    uses: ./.github/workflows/sanitize-tests.yml
     with:
       sanitizer: ubsan
 
   # Parallel sanitizers: asan, ubsan
   par-asan:
     needs: [build-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize.yml
+    uses: ./.github/workflows/sanitize-tests.yml
     with:
       par: true
       sanitizer: asan
   par-ubsan:
     needs: [build-libcxx, build-hypre, build-metis]
-    uses: ./.github/workflows/sanitize.yml
+    uses: ./.github/workflows/sanitize-tests.yml
     with:
       par: true
       sanitizer: ubsan
